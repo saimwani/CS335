@@ -135,7 +135,7 @@ def t_ID(t):
 	return t
 
 def t_STRING(t):
-	r'(\"(. | \n)*?\") | (\`(. | \n)*?\`)'
+	r'(\"(. | \n )*?[^\\]\") | (\`(. | \n)*?\`)'
 	return t
 
 def t_NEWLINE(t):
