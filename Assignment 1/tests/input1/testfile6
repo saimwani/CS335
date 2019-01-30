@@ -1,0 +1,46 @@
+package sort_test
+
+import (
+    "fmt"
+    "sort"
+)
+car="The name of //asdasd"
+box= "gfsdhfjskd /*sdfsdkjafa*/
+sdfsfasdf sdfas"
+hdsa=45.63663  //sadasdd"saasas"a
+sdfsd=4343/32434*3434.333  /*hello thsi is 
+dfssdfsdf
+sdfsdfjnas  teh naem of nmt "isdsacvsxac//sdfasfd" "sdfsa s"sdsa */ carr=4.56 
+type Person struct {
+    Name string
+    Age  int
+}
+jbuu="njnjn\\ndfefddf"
+func (p Person) String() string {
+    return fmt.Sprintf("%s: %d", p.Name, p.Age)
+}
+
+// ByAge implements sort.Interface for []Person based on
+// the Age field.
+type ByAge []Person
+
+func (a ByAge) Len() int           { return len(a) }
+func (a ByAge) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByAge) Less(i, j int) bool { return a[i].Age < a[j].Age }
+
+func Example() {
+    people := []Person{
+        {"Bob", 31},
+        {"John", 42},
+        {"Michael", 17},
+        {"Jenny", 26},
+    }
+
+    fmt.Println(people)
+    sort.Sort(ByAge(people))
+    fmt.Println(people)
+
+    // Output:
+    // [Bob: 31 John: 42 Michael: 17 Jenny: 26]
+    // [Michael: 17 Jenny: 26 Bob: 31 John: 42]
+}
