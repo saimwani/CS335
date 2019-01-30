@@ -46,12 +46,11 @@ tokens=['COMMENT','ID','INT','FLOAT','IMAG','STRING',
 	'EQL','LTN','GTN','ASSIGN','NOT',
         'NEQ','LEQ','GEQ','DEFINE','ELLIPSIS',
 	'LPAREN','LBRACK','LBRACE','COMMA','DOT',
-        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'WHITESPACE', 'TABSPACE', 'NEWLINE'
+        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'WHITESPACE', 'TABSPACE', 'NEWLINE', 'RUNE'
 ]
 
 tokens+=reserved.values()
 
-jbjj="#FF0000"
 
 t_ignore=''
 t_WHITESPACE=r'\s'
@@ -102,7 +101,7 @@ t_SEMICOLON=r';'
 t_COLON=r':'
 t_COMMA=r','
 t_DOT=r'\.'
-
+t_RUNE=r'\'([^\\\n]|(\\(a|f|n|b|r|t|v|\\|\'|\")))\''
 def t_COMMENT(t):
     r'//.* | /\*(.|\n)*?\*/'
     t.lexer.lineno += t.value.count('\n')
