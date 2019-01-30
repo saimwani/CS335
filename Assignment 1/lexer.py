@@ -4,6 +4,7 @@ import sys
 
 argumentList = sys.argv
 
+
 cfg= sys.argv[1][6:]
 inputProg=sys.argv[2]
 outputHtml=sys.argv[3][9:]
@@ -176,6 +177,7 @@ while True:
     tok = lexer.token()
     if not tok:
         break
+    print(tok)
     file1.write("<span style=\"color: "+colorDic[tok.type]+"\">"+tok.value+"</span>")
 
 file1.write("</pre></div></body></html>")
