@@ -2,19 +2,11 @@ import ply.lex as lex
 
 import sys
 
-
 argumentList = sys.argv
 
-
-
 cfg= sys.argv[1][6:]
-
 inputProg=sys.argv[2]
-
 outputHtml=sys.argv[3][9:]
-
-
-
 
 
 reserved={
@@ -54,7 +46,7 @@ tokens=['COMMENT','ID','INT','FLOAT','IMAG','STRING',
 	'EQL','LTN','GTN','ASSIGN','NOT',
         'NEQ','LEQ','GEQ','DEFINE','ELLIPSIS',
 	'LPAREN','LBRACK','LBRACE','COMMA','DOT',
-        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'WHITESPACE', 'TABSPACE', 'NEWLINE'
+        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'WHITESPACE', 'TABSPACE', 'NEWLINE', 'RUNE'
 ]
 
 tokens+=reserved.values()
@@ -110,14 +102,15 @@ t_SEMICOLON=r';'
 t_COLON=r':'
 t_COMMA=r','
 t_DOT=r'\.'
-
+t_RUNE=r'\'([^\\\n]|(\\(a|f|n|b|r|t|v|\\|\'|\")))\''
 def t_COMMENT(t):
-	r'//.* | /\*(.|\n)*?\*/'
-	return t
+    r'//.* | /\*(.|\n)*?\*/'
+    t.lexer.lineno += t.value.count('\n')
+    return t
 
 
 def t_IMAG(t):
-	r'([0-9]+\.[0-9]*(e|E)(\+|-)[0-9]+ | [0-9]+\.[0-9]*(e|E)[0-9]+ | \.[0-9]+(e|E)(\+|-)[0-9]+ | \.[0-9]+(e|E)[0-9]+ | [0-9]+(e|E)(\+|-)[0-9]+ | [0-9]+(e|E)[0-9]+ | [0-9]+\.[0-9]* |   \.[0-9]+)i  '
+	r'([0-9]+\.[0-9]*(e|E)(\+|-)[0-9]+ | [0-9]+\.[0-9]*(e|E)[0-9]+ | \.[0-9]+(e|E)(\+|-)[0-9]+ | \.[0-9]+(e|E)[0-9]+ | [0-9]+(e|E)(\+|-)[0-9]+ | [0-9]+(e|E)[0-9]+ | [0-9]+\.[0-9]* |   \.[0-9]+ | [1-9]\d* )i  '
 	return t
 
 def t_FLOAT(t):
@@ -135,8 +128,9 @@ def t_ID(t):
 	return t
 
 def t_STRING(t):
-	r'(\"(. | \n )*?[^\\]\") | (\`(. | \n)*?\`)'
-	return t
+    r'(\".*?[^\\\n]\") | \"\" | (`(. | \n)*?`)'
+    t.lexer.lineno += t.value.count('\n')
+    return t
 
 def t_NEWLINE(t):
 	r'\n+'
@@ -179,10 +173,11 @@ colorDic["TABSPACE"]="#FFE6E6"
 colorDic["NEWLINE"]="#FFE6E6"
 
 while True:
-	tok = lexer.token()
-	if not tok:
-	    break
-	file1.write("<span style=\"color: "+colorDic[tok.type]+"\">"+tok.value+"</span>")
+    tok = lexer.token()
+    if not tok:
+        break
+    print tok
+    file1.write("<span style=\"color: "+colorDic[tok.type]+"\">"+tok.value+"</span>")
 
 file1.write("</pre></div></body></html>")
 file1.close()
