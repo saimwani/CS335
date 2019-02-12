@@ -281,8 +281,7 @@ def p_FunctionType(p):
 
 def p_Signature(p):
     """
-    Signature : Parameters 
-              | Parameters Result
+    Signature : Parameters Result
     """
 
 def p_Result(p):
@@ -291,6 +290,7 @@ def p_Result(p):
            | Type
            | ID
            | ID DOT ID
+           | CHAN
     """
 
 def p_Parameters(p):
