@@ -1,17 +1,8 @@
 import ply.lex as lex
-
-import sys
-
-argumentList = sys.argv
-
-cfg= sys.argv[1][6:]
-inputProg=sys.argv[2]
-outputHtml=sys.argv[3][9:]
-
-
 reserved={
 	'break' : 'BREAK',
 	'case' : 'CASE',
+#Used CHAN in MethodExpr in parser to remove conflicts
 	'chan' : 'CHAN',
 	'const' : 'CONST',
 	'continue' : 'CONTINUE',
@@ -37,7 +28,7 @@ reserved={
 	'var' : 'VAR'
 }
 
-tokens=['COMMENT','ID','INT','FLOAT','IMAG','STRING',
+tokens=['ID','INT','FLOAT','IMAG','STRING',
         'ADD','SUB','MUL','DIV','MOD',
         'AND','OR','XOR','SHL','SHR','AND_NOT',
         'ADD_ASSIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN','MOD_ASSIGN',
@@ -46,15 +37,13 @@ tokens=['COMMENT','ID','INT','FLOAT','IMAG','STRING',
 	'EQL','LTN','GTN','ASSIGN','NOT',
         'NEQ','LEQ','GEQ','DEFINE','ELLIPSIS',
 	'LPAREN','LBRACK','LBRACE','COMMA','DOT',
-        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'WHITESPACE', 'TABSPACE', 'NEWLINE', 'RUNE'
+        'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'RUNE'
 ]
 
 tokens+=reserved.values()
 
 
-t_ignore=''
-t_WHITESPACE=r'\s'
-t_TABSPACE=r'\t'
+t_ignore=' \t'
 t_ADD=r'\+'
 t_SUB=r'-'
 t_MUL=r'\*'
@@ -72,6 +61,7 @@ t_MUL_ASSIGN=r'\*='
 t_DIV_ASSIGN=r'/='
 t_MOD_ASSIGN=r'%='
 t_AND_ASSIGN=r'&='
+t_AND_NOT_ASSIGN=r'&\^='
 t_OR_ASSIGN=r'\|='
 t_XOR_ASSIGN=r'\^='
 t_SHL_ASSIGN=r'<<='
@@ -105,8 +95,7 @@ t_RUNE=r'\'([^\\\n]|(\\(a|f|n|b|r|t|v|\\|\'|\")))\''
 def t_COMMENT(t):
     r'//.* | /\*(.|\n)*?\*/'
     t.lexer.lineno += t.value.count('\n')
-    return t
-
+    #return t
 
 def t_IMAG(t):
 	r'([0-9]+\.[0-9]*(e|E)(\+|-)[0-9]+ | [0-9]+\.[0-9]*(e|E)[0-9]+ | \.[0-9]+(e|E)(\+|-)[0-9]+ | \.[0-9]+(e|E)[0-9]+ | [0-9]+(e|E)(\+|-)[0-9]+ | [0-9]+(e|E)[0-9]+ | [0-9]+\.[0-9]* |   \.[0-9]+ | [1-9]\d* )i  '
@@ -134,7 +123,7 @@ def t_STRING(t):
 def t_NEWLINE(t):
 	r'\n+'
 	t.lexer.lineno += len(t.value)
-	return t
+	#return t
 
 def t_error(t):
 	print("Illegal character '%s'" % t.value[0])
@@ -142,41 +131,46 @@ def t_error(t):
 
 lexer = lex.lex()
 
+data="""
+/* sdst
+sadasd
+sadas */
+// and numeric values.
 
-with open(inputProg, 'r') as myfile:
-  data = myfile.read()
+package main
 
+import "fmt"
+import "math"
 
+// `const` declares a constant value.
+const s string = "constant"
 
+func main() {
+    fmt.Println(s)
 
-# Give the lexer OBsome input
+    // A `const` statement can appear anywhere a `var`
+    // statement can.
+    const n = 500000000
+
+    // Constant expressions perform arithmetic with
+    // arbitrary precision.
+    const d = 3e20 /= n
+    fmt.Println(d)
+
+    // A numeric constant has no type until it's given
+    // one, such as by an explicit cast.
+    fmt.Println(int64(d))
+
+    // A number can be given a type by using it in a
+    // context that requires one, such as a variable
+    // assignment or function call. For example, here
+    // `math.Sin` expects a `float64`.
+    fmt.Println(math.Sin(n))
+}
+"""
 lexer.input(data)
-
-# Python program to illustrate
-
-
-# Write-Overwrites
-file1 = open(outputHtml,"w")#write mode
-#file1 = open(outputHtml,"a")
-file1.write("<html><body bgcolor= \"#D3D3D3\"><div><pre>")
-file1.write("\n")
-
-colorDic = {}
-
-with open(cfg) as f:
-    for line in f:
-       (key, val) = line.split()
-       colorDic[key] = val
-colorDic["WHITESPACE"]="#FFE6E6"
-colorDic["TABSPACE"]="#FFE6E6"
-colorDic["NEWLINE"]="#FFE6E6"
-
 while True:
-    tok = lexer.token()
+    tok=lexer.token()
     if not tok:
         break
-    print tok
-    file1.write("<span style=\"color: "+colorDic[tok.type]+"\">"+tok.value+"</span>")
-
-file1.write("</pre></div></body></html>")
-file1.close()
+    #print(tok)

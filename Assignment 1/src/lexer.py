@@ -51,7 +51,6 @@ tokens=['COMMENT','ID','INT','FLOAT','IMAG','STRING',
 
 tokens+=reserved.values()
 
-jbjj="#FF0000"
 
 t_ignore=''
 t_WHITESPACE=r'\s'
