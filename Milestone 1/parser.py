@@ -283,7 +283,7 @@ def p_Signature(p):
     """
     Signature : Parameters Result
     """
-
+#introduced CHAN
 def p_Result(p):
     """
     Result : Parameters 
@@ -300,18 +300,17 @@ def p_Parameters(p):
                | LPAREN ParameterList COMMA RPAREN
     """
 
-#def p_ParameterList(p):
-#    """
-#    ParameterList : ParameterDecl 
-#                  | Type
-#                  | ID
-#                  | ID DOT ID
-#                  | ParameterList COMMA ParameterDecl
-#    """
+#Introduced CHAN
 
 def p_ParameterList(p):
     """
-    ParameterList : ParameterDecl 
+    ParameterList : ParameterDecl
+                  | ID
+                  | ID DOT ID
+                  | CHAN Type
+                  | ParameterList COMMA ID 
+                  | ParameterList COMMA ID DOT ID 
+                  | ParameterList COMMA CHAN Type 
                   | ParameterList COMMA ParameterDecl
     """
 
@@ -371,20 +370,6 @@ def p_MapType(p):
             | MAP LBRACK ID DOT ID RBRACK ID 
             | MAP LBRACK ID DOT ID RBRACK ID DOT ID
     """
-
-#Channel Type removed to avoid conflicts
-
-#def p_ChannelType(p):
-#    """
-#    ChannelType : CHAN Type
-#                | CHAN ARROW Type
-#                | ChannConf Type
-#    """
-#
-#def p_ChannConf_p(p):
-#    """
-#    ChannConf : ARROW CHAN
-#    """
 
 def p_Block(p):
     """
@@ -463,11 +448,11 @@ def p_UnaryOp(p):
             | ARROW
     """
 
-#Remed ID DOT ID from PrimaryExpr
 def p_PrimaryExpr(p):
     """
     PrimaryExpr : Literal
                 | ID
+                | ID DOT ID
                 | LPAREN Expression RPAREN
                 | Conversion
                 | MethodExpr
@@ -538,6 +523,7 @@ def p_Arguments(p):
               | LPAREN ID DOT ID COMMA ExpressionList ELLIPSIS COMMA RPAREN
     """
 
+#introduced CHAN
 def p_MethodExpr(p):
     """
     MethodExpr : CHAN Type DOT ID
