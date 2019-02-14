@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import lexer
+import sys
 
 tokens=lexer.tokens
 precedence = (
@@ -1284,7 +1285,9 @@ def p_error(p):
 
 parser=yacc.yacc()
 
-with open('test1','r') as f:
+
+
+with open(sys.argv[1],'r') as f:
     input_str = f.read()
 
 out=parser.parse(input_str)
