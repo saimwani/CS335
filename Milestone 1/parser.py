@@ -631,7 +631,7 @@ def p_SimpleStmt(p):
                |
     """
 
-def p_expressionStmt(p):
+def p_ExpressionStmt(p):
     """
     ExpressionStmt : Expression 
     """
