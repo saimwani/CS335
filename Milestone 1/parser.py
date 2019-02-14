@@ -408,7 +408,7 @@ def p_BinaryOp(p):
              | MulOp
     """
 
-def p_RelOp(P):
+def p_RelOp(p):
     """
     RelOp : EQL 
           | NEQ 
