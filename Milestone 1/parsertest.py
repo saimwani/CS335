@@ -1217,10 +1217,10 @@ def p_ForClause(p):
     """
     p[0]=['ForClause']
     for index in range(1,len(p)):
-      if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")"):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
+        if(isinstance(p[index],str) and p[index]!="(" and p[index]!=";"):
+            p[0].append([p[index]])
+        elif (not isinstance(p[index], str)):
+            p[0].append(p[index])
 
 def p_RangeClause(p):
     """
