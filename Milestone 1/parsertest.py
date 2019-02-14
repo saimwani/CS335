@@ -118,7 +118,7 @@ def p_ConstDecl(p):
               | CONST LPAREN ConstSpec_curl RPAREN
     """
     if (len(p)==3):
-        p[0]=p[1]
+        p[0]=p[2]
     else:
         p[0]=p[3]
 
@@ -440,7 +440,7 @@ def p_Signature(p):
     """
     Signature : Parameters Result
     """
-	p[0]=['Signature',p[1],p[2]]
+    p[0]=['Signature',p[1],p[2]]
 
 #introduced CHAN
 def p_Result(p):
