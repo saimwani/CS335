@@ -615,7 +615,7 @@ def p_Expression(p):
     if (len(p)==2):
         p[0]=p[1]
     else:
-        p[0]=['Expression', p[1], p[2], p[3]]
+        p[0]=[p[2], p[1], p[3]]
 
 def p_UnaryExpr(p):
     """
@@ -637,7 +637,7 @@ def p_BinaryOp(p):
              | MulOp
     """
     if(isinstance(p[1],str)):
-    	p[0]=[p[1]]
+    	p[0]=p[1]
     else:
     	p[0]=p[1]
 
@@ -650,7 +650,7 @@ def p_RelOp(p):
           | GTN
           | GEQ
     """
-    p[0]=[p[1]]
+    p[0]=p[1]
 
 def p_AddOp(p):
     """
@@ -659,7 +659,7 @@ def p_AddOp(p):
           | OR
           | XOR
     """
-    p[0]=[p[1]]
+    p[0]=p[1]
 
 def p_MulOp(p):
     """
@@ -671,7 +671,7 @@ def p_MulOp(p):
           | AND
           | AND_NOT
     """
-    p[0]=[p[1]]
+    p[0]=p[1]
 def p_UnaryOp(p):
     """
     UnaryOp : ADD
@@ -961,7 +961,7 @@ def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
-    p[0]=['Assignment', p[1], p[2], p[3]]
+    p[0]=[p[2], p[1], p[3]]
 
 def p_AssignOp(p):
     """
@@ -978,7 +978,7 @@ def p_AssignOp(p):
              | SHR_ASSIGN
              | ASSIGN
     """
-    p[0]=[p[1]]
+    p[0]=p[1]
 
 def p_LabelledStmt(p):
     """
@@ -1045,7 +1045,7 @@ def p_ShortVarDecl(p):
     """
     ShortVarDecl : IdentifierList DEFINE ExpressionList
     """
-    p[0]=['ShortVarDecl', p[1], [p[2]], p[3]]
+    p[0]=[p[2], p[1], p[3]]
 
 def p_IfStmt(p):
     """
@@ -1278,7 +1278,7 @@ def p_error(p):
 
 parser=yacc.yacc()
 
-with open('test','r') as f:
+with open('test1','r') as f:
     input_str = f.read()
 
 out=parser.parse(input_str)
