@@ -1323,6 +1323,7 @@ def writeGraph(someList):
 writeGraph(alist)
 file1.write("}")
 file1.close()
+outputTree=sys.argv[1]+".ps"
 
 import os
-os.system("dot -Tps treeGen.txt -o outputfi.ps")
+os.system("dot -Tps treeGen.txt -o" + outputTree)
