@@ -729,12 +729,16 @@ def p_SwitchStmt(p):
     SwitchStmt : ExprSwitchStmt 
                | TypeSwitchStmt
     """
-
+ #"""
+ #   ExprSwitchStmt : SWITCH LBRACE ExprCaseClause_curl RBRACE
+ #                  | SWITCH SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE
+ #                  | SWITCH Expression LBRACE ExprCaseClause_curl RBRACE
+ #                  | SWITCH SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE
+ #"""
 def p_ExprSwitchStmt(p):
     """
     ExprSwitchStmt : SWITCH LBRACE ExprCaseClause_curl RBRACE
                    | SWITCH SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE
-                   | SWITCH Expression LBRACE ExprCaseClause_curl RBRACE
                    | SWITCH SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE
     """
 
