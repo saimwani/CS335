@@ -222,7 +222,7 @@ def p_ArrayType(p):
 
 def p_SliceType(p):
     """
-    SliceType : LBRACK RBRACK TYPE
+    SliceType : LBRACK RBRACK Type
     """
 
 def p_StructType(p):
