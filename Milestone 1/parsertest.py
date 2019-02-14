@@ -643,7 +643,7 @@ def p_BinaryOp(p):
     else:
     	p[0]=p[1]
 
-def p_RelOp(P):
+def p_RelOp(p):
     """
     RelOp : EQL
           | NEQ
