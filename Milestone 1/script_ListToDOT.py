@@ -25,7 +25,9 @@ def writeGraph(someList):
                 file1.write(str(local) + "->" + str(counter) + ";")
                 file1.write("\n")
                 writeGraph(innerList)
-alist=['SourceFile', ['main'], ['ImportDecl_curl', ['ImportDecl_curl', ['ImportDecl_curl', [], ['"fmt"']], ['"math"']], ['ImportSpec_curl', ['ImportSpec_curl', [], ['"tensor"']], ['"torch"']]], ['TopLevelDecl_curl', [], ['ConstSpec', ['IdentifierList', ['x'], ['IdentifierList', ['y'], ['z']]], ['PointerType', ['*'], ['p']], ['='], ['ExpressionList', ['ExpressionList', ['1'], ['2']], ['3']]]]]
+alist=['SourceFile', ['main'], ['ImportDecl_curl', [], ['"fmt"']], ['TopLevelDecl_curl', ['TopLevelDecl_curl', [], ['TypeDecl', ['type'], ['TypeDef', ['Vertex'], ['StructType', ['struct'], ['FieldDecl_curl', ['FieldDecl_curl', [], ['FieldDecl', ['X'], ['int']]], ['FieldDecl', ['Y'], ['int']]]]]]], ['FunctionDecl', ['main'], ['Signature', ['Parameters', []], []], ['Statement_curl', ['Statement_curl', [], ['PrimaryExpr', ['PrimaryExpr', ['fmt'], ['.'], ['Println']], ['Arguments', ['CompositeLit', ['Vertex'], ['ElementList', ['1'], ['2']]]]]], ['ForStmt', ['for'], ['ForClause', ['ShortVarDecl', ['i'], [':='], ['0']], [';'], ['Expression', ['i'], ['<'], ['10']], [';'], ['IncDecStmt', ['i'], ['++']]], ['Statement_curl', [], ['Assignment', ['sum'], ['+='], ['i']]]]]]]]
+
+
 writeGraph(alist)
 file1.write("}")
 file1.close()
