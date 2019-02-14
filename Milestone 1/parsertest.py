@@ -348,7 +348,7 @@ def p_StructType(p):
     """
     StructType : STRUCT LBRACE FieldDecl_curl RBRACE
     """
-    p[0]=['StructType']          
+    p[0]=['StructType']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="{" and p[index]!="}" and p[index]!=";"):
         p[0].append([p[index]])
@@ -457,7 +457,7 @@ def p_Result(p):
       else:
         p[0]=['Result',[p[1]],[p[2]],[p[3]]]
     else:
-      p[0]=p[1] 
+      p[0]=p[1]
 
 def p_Parameters(p):
     """
@@ -550,7 +550,7 @@ def p_MethodSpec_curl(p):
     if(len(p)>1):
         p[0]=['MethodSpec_curl',p[1],p[2]]
     else:
-        p[0]=[]   
+        p[0]=[]
 
 def p_MethodSpec(p):
     """
@@ -563,7 +563,7 @@ def p_MethodSpec(p):
     elif(len(p)==3):
       p[0]=['MethodSpec',[p[1]],p[2]]
     else:
-      p[0]=['MethodSpec',[p[1]],[p[2]],[p[3]]]  
+      p[0]=['MethodSpec',[p[1]],[p[2]],[p[3]]]
 
 def p_MapType(p):
     """
@@ -731,7 +731,7 @@ def p_Slice(p):
           | LBRACK Expression COLON Expression COLON Expression RBRACK
           | LBRACK COLON Expression COLON Expression RBRACK
     """
-    p[0]=['Slice']         
+    p[0]=['Slice']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="[" and p[index]!="]" and p[index]!=";"):
         p[0].append([p[index]])
@@ -744,7 +744,7 @@ def p_TypeAssertion(p):
                   | DOT LPAREN ID RPAREN
                   | DOT LPAREN ID DOT ID RPAREN
     """
-    p[0]=['TypeAssertion']       
+    p[0]=['TypeAssertion']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=";"):
         p[0].append([p[index]])
@@ -784,7 +784,7 @@ def p_Arguments(p):
               | LPAREN ID DOT ID COMMA ExpressionList ELLIPSIS RPAREN
               | LPAREN ID DOT ID COMMA ExpressionList ELLIPSIS COMMA RPAREN
     """
-    p[0]=['Arguments']          
+    p[0]=['Arguments']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=","):
         p[0].append([p[index]])
@@ -798,7 +798,7 @@ def p_MethodExpr(p):
                | CHAN ID DOT ID
                | CHAN ID DOT ID DOT ID
     """
-    p[0]=['MethodExpr']      
+    p[0]=['MethodExpr']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!="," and p[index]!="chan"):
         p[0].append([p[index]])
@@ -812,7 +812,7 @@ def p_Conversion(p):
                | ID LPAREN Expression COMMA RPAREN
                | ID LPAREN Expression RPAREN
     """
-    p[0]=['Conversion']         
+    p[0]=['Conversion']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=","):
         p[0].append([p[index]])
@@ -849,7 +849,7 @@ def p_CompositeLit(p):
                  | ID LiteralValue
                  | ID DOT ID LiteralValue
     """
-    p[0]=['CompositeLit']          
+    p[0]=['CompositeLit']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="[" and p[index]!="]" and p[index]!=","):
         p[0].append([p[index]])
@@ -1056,7 +1056,7 @@ def p_IfStmt(p):
            | IF SimpleStmt SEMICOLON Expression Block ELSE Block
            | IF SimpleStmt SEMICOLON Expression Block ELSE IfStmt
     """
-    p[0]=['IfStmt']          
+    p[0]=['IfStmt']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!=";" and p[index]!="]" and p[index]!=","):
         p[0].append([p[index]])
@@ -1077,7 +1077,7 @@ def p_ExprSwitchStmt(p):
                    | SWITCH Expression LBRACE ExprCaseClause_curl RBRACE
                    | SWITCH SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE
     """
-    p[0]=['ExprSwitchStmt']          
+    p[0]=['ExprSwitchStmt']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="{" and p[index]!="}" and p[index]!=";"):
         p[0].append([p[index]])
@@ -1116,7 +1116,7 @@ def p_TypeSwitchStmt(p):
     TypeSwitchStmt : SWITCH SimpleStmt SEMICOLON TypeSwitchGuard LBRACE TypeCaseClause_curl RBRACE
                    | SWITCH TypeSwitchGuard LBRACE TypeCaseClause_curl RBRACE
     """
-    p[0]=['TypeSwitchStmt']         
+    p[0]=['TypeSwitchStmt']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="{" and p[index]!="}" and p[index]!=";"):
         p[0].append([p[index]])
@@ -1167,7 +1167,7 @@ def p_TypeList(p):
              | ID C_Type_curl
              | ID DOT ID C_Type_curl
     """
-    p[0]=['TypeList']          
+    p[0]=['TypeList']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=";"):
         p[0].append([p[index]])
@@ -1181,7 +1181,7 @@ def p_C_Type_curl(p):
                 | C_Type_curl COMMA ID DOT ID
                 |
     """
-    p[0]=['C_Type_curl']          
+    p[0]=['C_Type_curl']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=","):
         p[0].append([p[index]])
@@ -1196,7 +1196,7 @@ def p_ForStmt(p):
             | FOR RangeClause Block
             | FOR Block
     """
-    p[0]=['ForStmt']          
+    p[0]=['ForStmt']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=","):
         p[0].append([p[index]])
@@ -1208,7 +1208,7 @@ def p_ForClause(p):
     ForClause : SimpleStmt SEMICOLON SEMICOLON SimpleStmt
               | SimpleStmt SEMICOLON Expression SEMICOLON SimpleStmt
     """
-    p[0]=['ForClause']         
+    p[0]=['ForClause']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")"):
         p[0].append([p[index]])
@@ -1221,7 +1221,7 @@ def p_RangeClause(p):
                 | ExpressionList ASSIGN RANGE Expression
                 | RANGE Expression
     """
-    p[0]=['RangeClause']          
+    p[0]=['RangeClause']
     for index in range(1,len(p)):
       if(isinstance(p[index],str) and p[index]!="(" and p[index]!=")" and p[index]!=";"):
         p[0].append([p[index]])
@@ -1283,3 +1283,37 @@ with open('test','r') as f:
 
 out=parser.parse(input_str)
 print out
+
+alist=out
+file1 = open("treeGen.txt","w")#write mode
+#file1 = open(outputHtml,"a")
+file1.write("digraph graphname {")
+file1.write("\n")
+counter=0
+def writeGraph(someList):
+    global counter
+    local=counter
+    counter+=1
+    name=someList[0]
+    if(len(someList) > 1):
+        for innerList in someList[1:]:
+            if(len(innerList) >0):
+                file1.write(str(local))
+                file1.write ("[label=\"")
+                file1.write (name)
+                file1.write ("\" ] ;")
+                file1.write(str(counter))
+                file1.write ("[label=\"")
+                if ((innerList[0][0])=="\""):
+                    innerList[0]=innerList[0][1:-1]
+                file1.write (innerList[0])
+                file1.write ("\" ] ;")
+                file1.write(str(local) + "->" + str(counter) + ";")
+                file1.write("\n")
+                writeGraph(innerList)
+writeGraph(alist)
+file1.write("}")
+file1.close()
+
+import os
+os.system("dot -Tps treeGen.txt -o outputfi.ps")
