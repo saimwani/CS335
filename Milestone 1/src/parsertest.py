@@ -486,7 +486,7 @@ def p_ParameterList(p):
     """
     if(len(p)==2 and not isinstance(p[1],str)):
       p[0]=p[1]
-    elif(len(p==2)):
+    elif(len(p)==2):
       p[0]=[p[1]]
     elif(len(p)==3):
       p[0]=p[2]
@@ -808,10 +808,10 @@ def p_MethodExpr(p):
 
 def p_Conversion(p):
     """
-    Conversion : Type LPAREN Expression COMMA RPAREN
-               | Type LPAREN Expression RPAREN
-               | ID LPAREN Expression COMMA RPAREN
-               | ID LPAREN Expression RPAREN
+    Conversion : TYPECAST Type LPAREN Expression COMMA RPAREN
+               | TYPECAST Type LPAREN Expression RPAREN
+               | TYPECAST ID LPAREN Expression COMMA RPAREN
+               | TYPECAST ID LPAREN Expression RPAREN
     """
     p[0]=['Conversion']
     for index in range(1,len(p)):
