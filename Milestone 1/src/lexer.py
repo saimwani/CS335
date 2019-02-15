@@ -25,7 +25,8 @@ reserved={
 	'struct' : 'STRUCT',
 	'switch' : 'SWITCH',
 	'type' : 'TYPE',
-	'var' : 'VAR'
+	'var' : 'VAR',
+	'typecast' : 'TYPECAST'
 }
 
 tokens=['ID','INT','FLOAT','IMAG','STRING',
