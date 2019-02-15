@@ -1280,8 +1280,18 @@ def p_RecvStmt(p):
         p[0]=['RecvStmt', p[1], [p[2]], p[3] ]
 
 
+#def p_error(p):
+#    print("Syntax Error at Line No:", p.lineno, "at position", p.lexpos, p.value)
+
 def p_error(p):
-    print("Print Syntax Error", p)
+ if p:
+      #if(p.value!=";"):
+      print("Syntax error at line no:", p.lineno, "at position", p.lexpos, "in the code.   " "TOKEN VALUE=", p.value,  "TOKEN TYPE=" ,p.type)
+      print("\n")
+      # Just discard the token and tell the parser it's okay.
+      parser.errok()
+ else:
+      print("Syntax error at EOF")
 
 parser=yacc.yacc()
 
