@@ -1302,7 +1302,7 @@ with open(sys.argv[1],'r') as f:
 out=parser.parse(input_str)
 print out
 
-outputDot=sys.argv[2][6:]
+outputDot="../"+sys.argv[2][6:]
 
 alist=out
 file1 = open(outputDot,"w")#write mode
@@ -1334,7 +1334,7 @@ def writeGraph(someList):
 writeGraph(alist)
 file1.write("}")
 file1.close()
-outputTree=sys.argv[1][15:]+".ps"
+outputTree="../"+sys.argv[1][15:]+".ps"
 
 
 
