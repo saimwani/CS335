@@ -1294,6 +1294,7 @@ def p_error(p):
 parser=yacc.yacc()
 
 
+import os
 
 with open(sys.argv[1],'r') as f:
     input_str = f.read()
@@ -1301,8 +1302,10 @@ with open(sys.argv[1],'r') as f:
 out=parser.parse(input_str)
 print out
 
+outputDot=sys.argv[2][6:]
+
 alist=out
-file1 = open("treeGen.txt","w")#write mode
+file1 = open(outputDot,"w")#write mode
 #file1 = open(outputHtml,"a")
 file1.write("digraph graphname {")
 file1.write("\n")
@@ -1331,7 +1334,8 @@ def writeGraph(someList):
 writeGraph(alist)
 file1.write("}")
 file1.close()
-outputTree=sys.argv[1]+".ps"
+outputTree=sys.argv[1][15:]+".ps"
 
-import os
-os.system("dot -Tps treeGen.txt -o" +outputTree)
+
+
+os.system("dot -Tps "+ outputDot+ " -o " + outputTree)
