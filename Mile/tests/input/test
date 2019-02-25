@@ -1,0 +1,14 @@
+package main;
+
+import "fmt";
+type Vertex struct {
+	X int;
+	Y int;
+};
+
+const Pi = 3.14;
+func Scale(v *Vertex, f float64) chan {
+	fmt.Printf("b[:n] = %q\n", b[:n]);
+
+};
+

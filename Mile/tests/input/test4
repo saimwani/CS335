@@ -1,0 +1,207 @@
+// Go supports
+// <a href="http://en.wikipedia.org/wiki/Recursion_(computer_science)"><em>recursive functions</em></a>.
+// Here's a classic factorial example.
+
+package main;
+
+import "fmt";
+
+func fact(n int) int {
+    if n == 0 {
+        return 1;
+    };
+    return n * fact(n-1);
+};
+
+func fact(p int) int {
+    if p == 0 {
+        return 1;
+    };
+    return p * fact(p-1);
+
+    b := -3+(4*5+6);
+
+    c=34*(3*(2+3*(-3)));
+
+
+    if 32 > 4 {
+      b=45;};
+
+      if b > 323 {
+        c=8632;
+        } else {
+        b=23234;
+        };
+
+
+      if 7%2 == 0 {
+         c=3222;
+     } else {
+         d=233232;
+     };
+};
+
+func main() chan {
+    fmt.Println(fact(7));
+
+    b := -3+(4*5+6);
+
+    c=34*(3*(2+3*(-3)));
+
+
+    if 32 > 4 {
+      b=45;};
+
+      if b > 323 {
+        c=8632;
+        } else {
+        b=23234;
+        };
+
+
+      if 7%2 == 0 {
+         c=3222;
+     } else {
+         d=233232;
+     };
+
+
+
+
+
+
+
+
+
+     i := 1;
+    for i <= 3 {
+        fmt.Println(i);
+        i = i + 1;
+    };
+
+    // A classic initial/condition/after `for` loop.
+    for j := 7; j <= 9; j++ {
+        fmt.Println(j);
+    };
+
+    // `for` without a condition will loop repeatedly
+    // until you `break` out of the loop or `return` from
+    // the enclosing function.
+    for {
+        fmt.Println("loop");
+        break;
+    };
+
+    // You can also `continue` to the next iteration of
+    // the loop.
+    for n := 0; n <= 5; n++ {
+        if n%2 == 0 {
+            continue;
+        };
+        fmt.Println(n);
+    };
+
+
+
+
+    // Here's a basic example.
+    if 7%2 == 0 {
+        fmt.Println("7 is even");
+    } else {
+        fmt.Println("7 is odd");
+    };
+
+    // You can have an `if` statement without an else.
+    if 8%4 == 0 {
+        fmt.Println("8 is divisible by 4");
+    };
+
+    // A statement can precede conditionals; any variables
+    // declared in this statement are available in all
+    // branches.
+    if num := 9; num < 0 {
+        fmt.Println(num, "is negative");
+    } else if num < 10 {
+        fmt.Println(num, "has 1 digit");
+    } else {
+        fmt.Println(num, "has multiple digits");
+    };
+
+
+    fmt.Println(fact(7));
+
+    b := -3+(4*5+6);
+
+    c=34*(3*(2+3*(-3)));
+
+
+    if 32 > 4 {
+      b=45;};
+
+      if b > 323 {
+        c=8632;
+        } else {
+        b=23234;
+        };
+
+
+      if 7%2 == 0 {
+         c=3222;
+     } else {
+         d=233232;
+     };
+
+
+
+
+
+
+
+
+
+     i := 1;
+    for i <= 3 {
+        fmt.Println(i);
+        i = i + 1;
+    };
+
+    // A classic initial/condition/after `for` loop.
+    for j := 7; j <= 9; j++ {
+        fmt.Println(j);
+    };
+
+    // `for` without a condition will loop repeatedly
+    // until you `break` out of the loop or `return` from
+    // the enclosing function.
+    for {
+        fmt.Println("loop");
+        break;
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+};
