@@ -16,7 +16,7 @@ reserved={
 	'goto' : 'GOTO',
 	'if' : 'IF',
 	'import' : 'IMPORT',
-	'interface' : 'INTERFACE',
+#	'interface' : 'INTERFACE',
 	'map' : 'MAP',
 	'package' : 'PACKAGE',
 	'range' : 'RANGE',
@@ -26,6 +26,7 @@ reserved={
 	'switch' : 'SWITCH',
 	'type' : 'TYPE',
 	'var' : 'VAR',
+	'typeassert' : 'TYPEASSERT',
 	'typecast' : 'TYPECAST'
 }
 

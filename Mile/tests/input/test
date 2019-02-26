@@ -1,14 +1,10 @@
 package main;
 
 import "fmt";
-type Vertex struct {
-	X int;
-	Y int;
-};
 
-const Pi = 3.14;
 func Scale(v *Vertex, f float64) chan {
-	fmt.Printf("b[:n] = %q\n", b[:n]);
-
+//	fmt.Println(Vertex{1, 2});
+	(p),b,c = val(a,b,c);
+	*p,b,c = 3,4,5,6;
 };
 
