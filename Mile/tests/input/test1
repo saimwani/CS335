@@ -1,7 +1,7 @@
 
-package main;
+package main
 
-import "fmt";
+import "fmt"
 
 // The `(int, int)` in this function signature shows that
 // the function returns 2 `int`s.
@@ -10,29 +10,32 @@ import "fmt";
 func main() chan {
 
 
-    b := -3+(4*5+6);
+    b := -3+(4*5+6)
 
-    c=34*(3*(2+3*(-3)));
+    c= 34*(3*(2+3*(-3)))
 
 
     if 32 > 4 {
-      b=45;};
+      b=45
+}
 
       if b > 323 {
-        c=8632;
+        c=8632
         } else {
-        b=23234;
-        };
+        b=23234
+        }
 
 
       if 7%2 == 0 {
-         c=3222;
+         c=3222
      } else {
-         d=233232;
-     };
+         d=233232
+     }
 
     // If you only want a subset of the returned values,
     // use the blank identifier `_`.
     //c := vals();
     //fmt.Println(c);
-};
+}
+
+

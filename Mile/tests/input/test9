@@ -14,7 +14,7 @@ func split(sum int) (x, y int) {
 
 func main() chan {
 	var a,b int;
-	a, b = swap("hello", "world");
+	(a), b = swap("hello", "world");
 	fmt.Println(a, b);
 	fmt.Println(split(17));
 

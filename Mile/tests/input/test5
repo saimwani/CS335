@@ -66,11 +66,6 @@ func main() chan {
     for r := 0; r < 100; r++ {
         go func() chan {
             for {
-                //read := &readOp{
-                  //  key:  rand.Intn(5),
-                    //resp: make(chan int);};
-                reads <- read;
-                <-read.resp;
                 atomic.AddUint64(&readOps, 1);
                 time.Sleep(time.Millisecond);
 
@@ -83,9 +78,6 @@ func main() chan {
     for w := 0; w < 10; w++ {
         go func() chan {
             for {
-
-                writes <- write;
-                <-write.resp;
                 atomic.AddUint64(&writeOps, 1);
                 time.Sleep(time.Millisecond);
             };

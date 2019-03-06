@@ -63,8 +63,6 @@ for w := 0; w < 10; w++ {
 		go func() chan {
 				for {
 
-						writes <- write;
-						<-write.resp;
 						atomic.AddUint64(&writeOps, 1);
 						time.Sleep(time.Millisecond);
 				};
@@ -183,9 +181,7 @@ for i <= 3 {
 						for {
 								//read := &readOp{
 									//  key:  rand.Intn(5),
-										//resp: make(chan int);};
-								reads <- read;
-								<-read.resp;
+									
 								atomic.AddUint64(&readOps, 1);
 								time.Sleep(time.Millisecond);
 
@@ -199,8 +195,6 @@ for i <= 3 {
 				go func() chan {
 						for {
 
-								writes <- write;
-								<-write.resp;
 								atomic.AddUint64(&writeOps, 1);
 								time.Sleep(time.Millisecond);
 						};

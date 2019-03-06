@@ -1,16 +1,17 @@
-package internal;
+package internal
 
 import (
-	"fmt";
-	"strings";
+	"fmt"
+	"strings"
 
-	"math";
-	"regexp";
-);
+	"math"
+	"regexp"
+)
 
 
 func main() chan {
-	a=-b+3;
+	a=-b+3
 
-};
-fdasdas;
+}
+
+

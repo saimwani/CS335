@@ -1299,13 +1299,11 @@ with open(sys.argv[1],'r') as f:
     input_str = f.read()
 
 out=parser.parse(input_str)
-print out
 
 outputDot="../"+sys.argv[2][6:]
 
 alist=out
 file1 = open(outputDot,"w")#write mode
-#file1 = open(outputHtml,"a")
 file1.write("digraph graphname {")
 file1.write("\n")
 counter=0
