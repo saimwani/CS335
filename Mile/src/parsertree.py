@@ -2,6 +2,7 @@ import ply.yacc as yacc
 import os
 import lexer
 import sys
+from symTab import symbolTable
 
 tokens=lexer.tokens
 precedence = (
@@ -29,16 +30,23 @@ precedence = (
     ('left', 'MUL', 'DIV','MOD','AND','AND_NOT','SHL','SHR'),
 )
 
+scopeTab={}
+scopeNum=0
+scopeList=[0]
+scopeTab[0]=symbolTable
+currentScope=0
+
+def checkUse(ident,checkWhat):
+    if(checkWhat=='redeclaration'):
+    if(scopeTab[currentScope].search(ident) is not None):
+      return True
+    else:
+      return False
+
 def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
     """
-    p[0]=['SourceFile']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_OpenS(p):
     "OpenS : "
@@ -59,61 +67,35 @@ def p_CloseStructS(p):
 def p_TopLevelDecl_curl(p):
     """
     TopLevelDecl_curl : TopLevelDecl_curl TopLevelDecl SEMICOLON
-                      |
+                    |
     """
-    p[0]=['TopLevelDecl_curl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ImportDecl_curl(p):
     """
     ImportDecl_curl : ImportDecl_curl ImportDecl SEMICOLON
-                    |
+                  |
     """
-    p[0]=['ImportDecl_curl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_PackageClause(p):
     """
     PackageClause : PACKAGE ID
     """
-    p[0]=['PackageClause']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
+    if(checkUse(p[2],'redeclaration')==True):
+        raise NameError("Redeclaration of variable:"+p[2])
+    else:
+        scopeTab[currentScope].insert(p[2],['package'])
 
 def p_ImportDecl(p):
     """
     ImportDecl : IMPORT ImportSpec
                | IMPORT LPAREN ImportSpec_curl RPAREN
     """
-    p[0]=['ImportDecl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ImportSpec_curl(p):
     """
     ImportSpec_curl : ImportSpec_curl ImportSpec SEMICOLON
                     |
     """
-    p[0]=['ImportSpec_curl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ImportSpec(p):
     """
@@ -121,12 +103,7 @@ def p_ImportSpec(p):
                | ID ImportPath
                | ImportPath
     """
-    p[0]=['ImportSpec']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
+    
 
 def p_ImportPath(p):
     """
@@ -1211,9 +1188,9 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH SimpleStmt SEMICOLON OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
+                       | SWITCH SimpleStmt SEMICOLON OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
+                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
                        | SWITCH SimpleStmt SEMICOLON Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
     """
     p[0]=['ExprSwitchStmt']
