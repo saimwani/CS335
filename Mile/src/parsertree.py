@@ -317,7 +317,6 @@ def p_VarSpec(p):
 def p_FunctionDecl(p):
     """
     FunctionDecl : FUNC ID Signature Block
-                 | FUNC ID Signature
     """
     p[0]=['FunctionDecl']
     for index in range(1,len(p)):
