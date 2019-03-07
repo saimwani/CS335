@@ -3,6 +3,7 @@ import os
 import lexer
 import sys
 from symTab import symbolTable
+from symTab import node
 
 tokens=lexer.tokens
 precedence = (
@@ -103,30 +104,18 @@ def p_ImportSpec(p):
                | ID ImportPath
                | ImportPath
     """
-    
+
 
 def p_ImportPath(p):
     """
     ImportPath : STRING
     """
-    p[0]=['ImportPath']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_TopLevelDecl(p):
     """
     TopLevelDecl : Declaration
                  | FunctionDecl
     """
-    p[0]=['TopLevelDecl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_Declaration(p):
     """
@@ -134,63 +123,46 @@ def p_Declaration(p):
                 | TypeDecl
                 | VarDecl
     """
-    p[0]=['Declaration']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ConstDecl(p):
     """
     ConstDecl : CONST ConstSpec
               | CONST LPAREN ConstSpec_curl RPAREN
     """
-    p[0]=['ConstDecl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ConstSpec_curl(p):
     """
     ConstSpec_curl : ConstSpec_curl ConstSpec SEMICOLON
                    |
     """
-    p[0]=['ConstSpec_curl']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
 
 def p_ConstSpec(p):
     """
     ConstSpec : IdentifierList ID ASSIGN ExpressionList
-              | IdentifierList ID DOT ID ASSIGN ExpressionList
               | IdentifierList Type ASSIGN ExpressionList
-              | IdentifierList ASSIGN ExpressionList
-              | IdentifierList
     """
-    p[0]=['ConstSpec']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
+    for x in p[1].idList:
+        if(checkUse(x,'redeclaration')==True):
+            raise NameError('Redeclaration of identifier:'+x)
+        else:
+            if(isinstance(p[2],str)):
+                scopeTab[currentScope].insert(x,p[2])
+            else:
+                scopeTab[currentScope].insert(x,p[2].type)
+            scopeTab[currentScope].update(x,'constant',True)
+
 
 def p_IdentifierList(p):
     """
     IdentifierList : ID
                    | ID COMMA IdentifierList
     """
-    p[0]=['IdentifierList']
-    for index in range(1,len(p)):
-      if(isinstance(p[index],str)):
-        p[0].append([p[index]])
-      else:
-        p[0].append(p[index])
+    p[0]=node()
+    if(len(p)==2):
+        p[0].idList.append(p[1])
+    else:
+        p[0].idList.append(p[1])
+        p[0]=p[0]+p[3].idList
 
 def p_ExpressionList(p):
     """
