@@ -4,7 +4,7 @@ class symbolTable:
 	self.parent=None
 
 	def search(self,ident):
-		return (ident in self.table)
+		return (self.table.get(ident))
 
 	def insert(self,ident,attribute):
 		if(not self.search(ident)):
