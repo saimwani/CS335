@@ -40,6 +40,22 @@ def p_SourceFile(p):
       else:
         p[0].append(p[index])
 
+def p_OpenS(p):
+    "OpenS : "
+    p[0]=[]
+
+def p_CloseS(p):
+    "CloseS : "
+    p[0]=[]
+
+def p_OpenStructS(p):
+    "OpenStructS : "
+    p[0]=[]
+
+def p_CloseStructS(p):
+    "CloseStructS : "
+    p[0]=[]
+
 def p_TopLevelDecl_curl(p):
     """
     TopLevelDecl_curl : TopLevelDecl_curl TopLevelDecl SEMICOLON
@@ -383,7 +399,7 @@ def p_SliceType(p):
 
 def p_StructType(p):
     """
-    StructType : STRUCT LBRACE FieldDecl_curl RBRACE
+    StructType : STRUCT OpenStructS LBRACE FieldDecl_curl RBRACE CloseStructS
     """
     p[0]=['StructType']
     for index in range(1,len(p)):
@@ -596,7 +612,7 @@ def p_MapType(p):
 
 def p_Block(p):
     """
-    Block : LBRACE StatementList RBRACE
+    Block : OpenS LBRACE StatementList RBRACE CloseS
     """
     p[0]=['Block']
     for index in range(1,len(p)):
@@ -1195,10 +1211,10 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-        ExprSwitchStmt : SWITCH LBRACE ExprCaseClause_curl RBRACE
-                       | SWITCH SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE
-                       | SWITCH Expression LBRACE ExprCaseClause_curl RBRACE
-                       | SWITCH SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE
+        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH SimpleStmt SEMICOLON OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH SimpleStmt SEMICOLON Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
     """
     p[0]=['ExprSwitchStmt']
     for index in range(1,len(p)):
