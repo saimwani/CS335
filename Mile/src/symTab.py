@@ -3,6 +3,9 @@ class node:
         self.idList=[]
         self.code=[]
         self.type=[]
+        self.expTList=[]
+        self.expList=[]
+        self.info={}
 
 class symbolTable:
     def __init__(self):

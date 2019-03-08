@@ -35,7 +35,7 @@ tokens=['ID','INT','FLOAT','IMAG','STRING',
         'AND','OR','XOR','SHL','SHR','AND_NOT',
         'ADD_ASSIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN','MOD_ASSIGN',
         'AND_ASSIGN','OR_ASSIGN','XOR_ASSIGN','SHL_ASSIGN','SHR_ASSIGN','AND_NOT_ASSIGN',
-        'LAND','LOR','ARROW','INC','DEC',
+        'LAND','LOR','INC','DEC',
 	'EQL','LTN','GTN','ASSIGN','NOT',
         'NEQ','LEQ','GEQ','DEFINE','ELLIPSIS',
 	'LPAREN','LBRACK','LBRACE','COMMA','DOT',
@@ -195,13 +195,6 @@ def t_LOR(t):
     global prev_token
     prev_token=t.type
     return t
-
-def t_ARROW(t):
-    r'<-'
-    global prev_token
-    prev_token=t.type
-    return t
-
 
 def t_EQL(t):
     r'=='
