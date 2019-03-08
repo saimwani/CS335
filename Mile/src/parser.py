@@ -38,10 +38,15 @@ currentScope=0
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
-    if(scopeTab[currentScope].search(ident) is not None):
-      return True
-    else:
-      return False
+        if(scopeTab[currentScope].search(ident) is not None):
+            return True
+        else:
+            return False
+    if(checkWhat=='anywhere'):
+        for x in scopeList[::-1]:
+            if(scopeTab[x].search(ident) is not None)
+                return x
+        return False
 
 def p_SourceFile(p):
     """
@@ -142,6 +147,7 @@ def p_ConstSpec(p):
     """
     if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[2])
+    
     for x in p[1].idList:
         if(checkUse(x,'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+x)
@@ -151,7 +157,13 @@ def p_ConstSpec(p):
             else:
                 scopeTab[currentScope].insert(x,p[2].type)
             scopeTab[currentScope].updateList(x,'constant',True)
-
+    
+    if(len(p[1].idList) != len(p[4].expTList)):
+        raise NameError("Imbalanced assignment")
+    
+    for i in range(0,len(p[1].idList)):
+        if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
+            raise ("Mismatch of type for "+p[1].idList[i])
 
 def p_IdentifierList(p):
     """
@@ -217,12 +229,37 @@ def p_VarSpec(p):
     """
     VarSpec : IdentifierList Type ASSIGN ExpressionList
             | IdentifierList ID ASSIGN ExpressionList
-            | IdentifierList ID DOT ID ASSIGN ExpressionList
             | IdentifierList ASSIGN ExpressionList
             | IdentifierList ID
-            | IdentifierList ID DOT ID
             | IdentifierList Type
     """
+    if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid type of identifier "+p[2])
+    
+    if(len(p)==5 or len(p)==3):
+        for x in p[1].idList:
+            if(checkUse(x,'redeclaration')==True):
+                raise NameError('Redeclaration of identifier:'+x)
+            else:
+                if(isinstance(p[2],str)):
+                    scopeTab[currentScope].insert(x,p[2])
+                else:
+                    scopeTab[currentScope].insert(x,p[2].type)
+    
+    if(len(p)==5):
+        if(len(p[1].idList) != len(p[4].idList)):
+            raise NameError("Imbalanced assignment")
+        for i in range(0,len(p[1].idList)):
+            if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
+                raise ("Mismatch of type for "+p[1].idList[i])
+    
+    if(len(p)==4):
+        if(len(p[1].idList) != len(p[3].expTList)):
+            raise NameError("Imbalanced assignment")
+        for i in range(0,p[1].idList):
+            if(checkUse(p[1].idList[i],'redeclaration')==True):
+                raise NameError('Redeclaration of identifier:'+p[1].idList[i])
+            scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
 
 def p_FunctionDecl(p):
     """
@@ -745,6 +782,13 @@ def p_ShortVarDecl(p):
     """
     ShortVarDecl : IdentifierList DEFINE ExpressionList
     """
+    if(len(p[1].idList) != len(p[3].expTList)):
+        raise NameError("Imbalanced assignment")
+    
+    for i in range(0,p[1].idList):
+        if(checkUse(p[1].idList[i],'redeclaration')==True):
+            raise NameError('Redeclaration of identifier:'+p[1].idList[i])
+        scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
 
 def p_IfStmt(p):
     """
