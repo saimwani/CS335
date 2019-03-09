@@ -1,10 +1,15 @@
 package main
 import "fmt"
 var a int
-func abs(ad,ag int, fj,kl float) (string,string){
-    ag=fj
+func abs(ad,ag int, fj,kl float) chan{
+    ad =3
+    var a string
+    a="dddd"
+    return 
 }
 func main() chan{
     var a int
-    var c int
+    var c float
+    var x,c1 string
+    abs(a,a,c,c)
 }

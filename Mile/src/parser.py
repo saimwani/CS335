@@ -125,7 +125,7 @@ def p_OpenS(p):
 
 def p_CloseS(p):
     "CloseS : "
-    print(scopeTab[currentScope].table)
+    print(scopeTab[0].table)
     closeS()
 
 def p_OpenStructS(p):
@@ -238,7 +238,7 @@ def p_IdentifierList(p):
         p[0].idList.append(p[1])
     else:
         p[0].idList.append(p[1])
-        p[0]=p[0]+p[3].idList
+        p[0].idList=p[0].idList+p[3].idList
 
 def p_ExpressionList(p):
     """
@@ -248,7 +248,7 @@ def p_ExpressionList(p):
     p[0]=node()
     if(len(p)==2):
         p[0].expTList+=p[1].expTList
-        if(p[1].info["memory"]==1):
+        if(p[1].info.get("memory")):
             p[0].info["memory"]=1
         else:
             p[0].info["memory"]=0
@@ -462,7 +462,7 @@ def p_Result(p):
     Result : LPAREN TypeList RPAREN
            | CHAN
     """
-    if(isinstance(p[1],str)):
+    if(len(p)==2):
         scopeTab[0].updateList(currentFunc,"returns",[["void"]])
     else:
         scopeTab[0].updateList(currentFunc,"returns",p[2].idList)
@@ -784,28 +784,28 @@ def p_IntLit(p):
     IntLit : INT
     """
     p[0]=node()
-    p[0].expTList.append("int")
+    p[0].expTList.append(["int"])
 
 def p_FloatLit(p):
     """
     FloatLit : FLOAT
     """
     p[0]=node()
-    p[0].expTList.append("float")
+    p[0].expTList.append(["float"])
 
 def p_RuneLit(p):
     """
     RuneLit : RUNE
     """
     p[0]=node()
-    p[0].expTList.append("rune")
+    p[0].expTList.append(["rune"])
 
 def p_StringLit(p):
     """
     StringLit : STRING
     """
     p[0]=node()
-    p[0].expTList.append("string")
+    p[0].expTList.append(["string"])
 
 #Removed struct assignments in compositelit
 
@@ -864,7 +864,8 @@ def p_SimpleStmt(p):
                | ShortVarDecl
                |
     """
-    if(type(p[1])==node):
+    b=node()
+    if(type(p[1])==type(b)):
         if(p[1].expTList==[["void"]]):
             a=0
         else:
