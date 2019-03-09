@@ -469,28 +469,28 @@ def p_Result(p):
 
 def p_TypeList(p):
     """
-    TypeList : CHAN ID
-             | CHAN Type
-             | TypeList COMMA CHAN ID
-             | TypeList COMMA CHAN Type
+    TypeList : ID
+             | Type
+             | TypeList COMMA ID
+             | TypeList COMMA Type
     """
-    if(isinstance(p[2],str) and p[2]!=',' and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid return type "+p[2])
-    if(len(p)==5 and isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid return type "+p[4])
+    if(isinstance(p[1],str) and not p[1] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid return type "+p[1])
+    if(len(p)==4 and isinstance(p[3],str) and not p[3] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid return type "+p[3])
     p[0]=node()
-    if(len(p)==3):
-        if(isinstance(p[2],str)):
-            p[0].idList.append([p[2]])
+    if(len(p)==2):
+        if(isinstance(p[1],str)):
+            p[0].idList.append([p[1]])
         else:
-            p[0].idList.append(p[2].type)
+            p[0].idList.append(p[1].type)
     else:
-        if(isinstance(p[4],str)):
+        if(isinstance(p[3],str)):
             p[0].idList=p[1].idList
-            p[0].idList.append([p[4]])
+            p[0].idList.append([p[3]])
         else:
             p[0].idList=p[1].idList
-            p[0].idList.append(p[4].type)
+            p[0].idList.append(p[3].type)
 
 def p_Parameters(p):
     """
