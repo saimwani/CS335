@@ -31,9 +31,8 @@ precedence = (
 )
 
 scopeTab={}
-scopeNum=0
 scopeList=[0]
-scopeTab[0]=symbolTable
+scopeTab[0]=symbolTable()
 currentScope=0
 
 def checkUse(ident,checkWhat):
@@ -48,6 +47,22 @@ def checkUse(ident,checkWhat):
                 return x
         return False
 
+def openS():
+    global currentScope 
+    global scopeList 
+    prevScope=currentScope
+    currentScope+=1
+    scopeList.append(currentScope)
+    scopeTab[currentScope]=symbolTable()
+    scopeTab[currentScope].assignParent(prevScope)
+    scopeTab[currentScope].typeList=scopeTab[prevScope].typeList 
+
+def closeS():
+    global currentScope
+    global scopeList 
+    currentScope=scopeList[-2]
+    scopeList=scopeList[0:-1]
+
 def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
@@ -55,11 +70,11 @@ def p_SourceFile(p):
 
 def p_OpenS(p):
     "OpenS : "
-    p[0]=[]
+    addS()
 
 def p_CloseS(p):
     "CloseS : "
-    p[0]=[]
+    closeS()
 
 def p_OpenStructS(p):
     "OpenStructS : "
@@ -263,7 +278,7 @@ def p_VarSpec(p):
 
 def p_FunctionDecl(p):
     """
-    FunctionDecl : FUNC ID Signature Block
+    FunctionDecl : FUNC ID OpenS Signature Block CloseS
     """
 
 def p_Type(p):
@@ -425,7 +440,7 @@ def p_ParameterDecl(p):
 
 def p_Block(p):
     """
-    Block : OpenS LBRACE StatementList RBRACE CloseS
+    Block : LBRACE StatementList RBRACE 
     """
 
 def p_StatementList(p):
@@ -544,10 +559,10 @@ def p_PrimaryExpr(p):
     if(len(p)==2 and not isinstance(p[1],str)):
         p[0]=p[1]
     elif(len(p)==2):
-        if(scopeTab[currentScope].search(p[1])==None):
+        if(checkUse(p[1],"anywhere")==False):
             raise NameError("Undeclared identifier "+p[1])
         p[0]=node()
-        p[0].expTList.append(scopeTab[currentScope][p[1]]["type"])
+        p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")][p[1]]["type"])
     elif(isinstance(p[1],str) and p[1]!='('):
         a=0
         #Not to be done before declaring structs
@@ -686,17 +701,15 @@ def p_Statement(p):
     Statement : Declaration
               | LabelledStmt
               | SimpleStmt
-              | GoStmt
               | ReturnStmt
               | BreakStmt
               | ContinueStmt
               | GotoStmt
               | FallthroughStmt
               | IfStmt
-              | Block
+              | OpenS Block CloseS
               | SwitchStmt
               | ForStmt
-              | DeferStmt
     """
 
 def p_SimpleStmt(p):
@@ -713,11 +726,21 @@ def p_IncDecStmt(p):
     IncDecStmt : Expression INC
                | Expression DEC
     """
+    if(p[0].expTList[0]!="int"):
+        raise NameError("This operation can only be done on integers")
 
 def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
+    #help us abhinav
+    if(len(p[1].expTList) != len(p[3].expTList)):
+        raise NameError("Imbalanced assignment")
+    
+    for i in range(0,len(p[1].idList)):
+        if(p[3].expTList[i] != p[3].expTList[i]):
+            raise ("Mismatch of type for "+p[1].idList[i])
+    
 
 def p_AssignOp(p):
     """
@@ -734,15 +757,12 @@ def p_AssignOp(p):
              | SHR_ASSIGN
              | ASSIGN
     """
+    p[0]=node()
+    p[0].expTList.append(p[1])
 
 def p_LabelledStmt(p):
     """
     LabelledStmt : ID COLON Statement
-    """
-
-def p_GoStmt(p):
-    """
-    GoStmt : GO Expression
     """
 
 def p_ReturnStmt(p):
@@ -773,11 +793,6 @@ def p_FallthroughStmt(p):
     FallthroughStmt : FALLTHROUGH
     """
 
-def p_DeferStmt(p):
-    """
-    DeferStmt : DEFER Expression
-    """
-
 def p_ShortVarDecl(p):
     """
     ShortVarDecl : IdentifierList DEFINE ExpressionList
@@ -792,12 +807,12 @@ def p_ShortVarDecl(p):
 
 def p_IfStmt(p):
     """
-    IfStmt : IF Expression Block
-           | IF SimpleStmt SEMICOLON Expression Block
-           | IF Expression Block ELSE IfStmt
-           | IF Expression Block ELSE Block
-           | IF SimpleStmt SEMICOLON Expression Block ELSE Block
-           | IF SimpleStmt SEMICOLON Expression Block ELSE IfStmt
+    IfStmt : IF Expression OpenS Block CloseS 
+           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS 
+           | IF Expression OpenS Block CloseS ELSE IfStmt
+           | IF Expression OpenS Block CloseS ELSE OpenS Block CloseS 
+           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE OpenS Block CloseS 
+           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE IfStmt
     """
 
 def p_SwitchStmt(p):
@@ -807,10 +822,10 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
-                       | SWITCH SimpleStmt SEMICOLON OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
-                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
-                       | SWITCH SimpleStmt SEMICOLON Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS
+        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH OpenS SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH OpenS SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE CloseS
     """
 
 def p_ExprCaseClause_curl(p):
@@ -829,26 +844,18 @@ def p_ExprSwitchCase(p):
     ExprSwitchCase : CASE ExpressionList
                    | DEFAULT
     """
-
+#Removed rangeclause for unknown reasons
 def p_ForStmt(p):
     """
-    ForStmt : FOR Expression Block
-            | FOR ForClause Block
-            | FOR RangeClause Block
-            | FOR Block
+    ForStmt : FOR Expression OpenS Block CloseS      
+            | FOR OpenS ForClause Block CloseS 
+            | FOR OpenS Block CloseS  
     """
 
 def p_ForClause(p):
     """
     ForClause : SimpleStmt SEMICOLON SEMICOLON SimpleStmt
               | SimpleStmt SEMICOLON Expression SEMICOLON SimpleStmt
-    """
-
-def p_RangeClause(p):
-    """
-    RangeClause : IdentifierList DEFINE RANGE Expression
-                | ExpressionList ASSIGN RANGE Expression
-                | RANGE Expression
     """
 
 #def p_error(p):
@@ -901,7 +908,5 @@ writeGraph(alist)
 file1.write("}")
 file1.close()
 outputTree="../"+sys.argv[1][15:]+".ps"
-
-
 
 os.system("dot -Tps "+ outputDot+" -o "+outputTree)
