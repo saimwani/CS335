@@ -76,15 +76,15 @@ def checkOprn(exp1,binop,exp2):
     if(exp1!=exp2):
         return None
     if(exp1=="int" or exp1=="rune"):
-        return exp1
+        return [exp1]
     if(exp1=="float"):
         if(binop=="|" or binop=="^" or binop=="<<" or binop==">>" or binop=="%" or binop=="&" or binop=="&^"):
             return None
         else:
-            return exp1
+            return [exp1]
     if(exp1=="string"):
         if(binop=="+"):
-            return exp1
+            return [exp1]
         else:
             return None
     
@@ -95,7 +95,7 @@ def checkUnOprn(unop,exp1):
             return None
         exp1=exp1[0]
         if(exp1=="int" or exp1=="float" or exp1=="rune"):
-            return exp1
+            return [exp1]
         else:
             return None
     if(unop=="^" or unop=="!"):
