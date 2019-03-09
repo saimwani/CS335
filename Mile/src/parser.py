@@ -209,11 +209,11 @@ def p_ConstSpec(p):
               | IdentifierList Type ASSIGN ExpressionList
     """
     if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[2])
+        raise NameError("Invalid type of identifier "+p[2], p.lienno(1))
     
     for x in p[1].idList:
         if(checkUse(x,'redeclaration')==True):
-            raise NameError('Redeclaration of identifier:'+x)
+            raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
         else:
             if(isinstance(p[2],str)):
                 scopeTab[currentScope].insert(x,[p[2]])
@@ -222,7 +222,7 @@ def p_ConstSpec(p):
             scopeTab[currentScope].updateList(x,'constant',True)
     
     if(len(p[1].idList) != len(p[4].expTList)):
-        raise NameError("Imbalanced assignment")
+        raise NameError("Imbalanced assignment", p.lineno(1))
     
     for i in range(0,len(p[1].idList)):
         if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
@@ -305,12 +305,12 @@ def p_VarSpec(p):
             | IdentifierList Type
     """
     if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[2])
+        raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
     
     if(len(p)==5 or len(p)==3):
         for x in p[1].idList:
             if(checkUse(x,'redeclaration')==True):
-                raise NameError('Redeclaration of identifier:'+x)
+                raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
             else:
                 if(isinstance(p[2],str)):
                     scopeTab[currentScope].insert(x,[p[2]])
@@ -319,17 +319,17 @@ def p_VarSpec(p):
     
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].idList)):
-            raise NameError("Imbalanced assignment")
+            raise NameError("Imbalanced assignment", p.lineno(1))
         for i in range(0,len(p[1].idList)):
             if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
                 raise ("Mismatch of type for "+p[1].idList[i])
     
     if(len(p)==4):
         if(len(p[1].idList) != len(p[3].expTList)):
-            raise NameError("Imbalanced assignment")
+            raise NameError("Imbalanced assignment", p.lineno(1))
         for i in range(0,p[1].idList):
             if(checkUse(p[1].idList[i],'redeclaration')==True):
-                raise NameError('Redeclaration of identifier:'+p[1].idList[i])
+                raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
 
 def p_FunctionDecl(p):
@@ -343,7 +343,7 @@ def p_FuncName(p):
     """
     global currentFunc 
     if(checkUse(p[1],'redeclaration')==True):
-        raise NameError('The name of function has been used elsewhere :'+p[1])
+        raise NameError('The name of function has been used elsewhere :'+p[1], p.lineno(1))
     scopeTab[0].insert(p[1],["func"])
     currentFunc=p[1] 
 
@@ -357,7 +357,7 @@ def p_Type(p):
         p[0]=p[1]
     else:
         if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
-            raise NameError("Invalid type of identifier "+p[2])
+            raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
         if(isinstance(p[2],str)):
             p[0]=node()
             p[0].type.append(p[2])
@@ -379,9 +379,9 @@ def p_ArrayType(p):
               | LBRACK Expression RBRACK ID
     """
     if(p[2].expTList!=[["int"]]):
-        raise NameError("Array index must be integer")
+        raise NameError("Array index must be integer", p.lienno(1))
     if(isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[4])
+        raise NameError("Invalid type of identifier "+p[4], p.lineno(1))
     if(isinstance(p[4],str)):
         p[0]=node()
         p[0].type.append("arr")
@@ -397,7 +397,7 @@ def p_SliceType(p):
               | LBRACK RBRACK ID
     """
     if(isinstance(p[3],str) and not p[3] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[3])
+        raise NameError("Invalid type of identifier "+p[3], p.lineno(1))
     if(isinstance(p[4],str)):
         p[0]=node()
         p[0].type.append("slice")
@@ -441,7 +441,7 @@ def p_PointerType(p):
                 | MUL ID
     """
     if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[2])
+        raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
     if(isinstance(p[2],str)):
         p[0]=node()
         p[0].type.append("pointer")
@@ -475,9 +475,9 @@ def p_TypeList(p):
              | TypeList COMMA Type
     """
     if(isinstance(p[1],str) and not p[1] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid return type "+p[1])
+        raise NameError("Invalid return type "+p[1], p.lineno(1))
     if(len(p)==4 and isinstance(p[3],str) and not p[3] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid return type "+p[3])
+        raise NameError("Invalid return type "+p[3], p.lineno(1))
     p[0]=node()
     if(len(p)==2):
         if(isinstance(p[1],str)):
@@ -525,13 +525,13 @@ def p_ParameterDecl(p):
                   | ID ID
     """
     if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[2])
+        raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
    
     p[0]=node()
     if(not isinstance(p[1],str)):
         for x in p[1].idList:
             if(checkUse(x,'redeclaration')==True):
-                    raise NameError('Redeclaration of identifier:'+x)
+                    raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
             else:
                 if(isinstance(p[2],str)):
                     scopeTab[currentScope].insert(x,[p[2]])
@@ -541,7 +541,7 @@ def p_ParameterDecl(p):
                     p[0].idList.append(p[2].type)
     else:
         if(checkUse(p[1],'redeclaration')==True):
-            raise NameError('Redeclaration of identifier:'+x)
+            raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
         else:
             if(isinstance(p[2],str)):
                 scopeTab[currentScope].insert(p[1], [p[2]])
@@ -591,9 +591,9 @@ def p_Expression(p):
         p[0]=node()
         #p[0].expList.append(p[1].expList[0]+p[2].expList[0]+p[3].expList[0])
         if(len(p[1].expTList)>1 or len(p[3].expTList)>1):
-            raise NameError("Can't apply binary operators to multiple values")
+            raise NameError("Can't apply binary operators to multiple values", p.lineno(1))
         if(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] )==None):
-            raise NameError("Invalid types for operator ",p[2].expTList[0])
+            raise NameError("Invalid types for operator ",p[2].expTList[0],p.lineno(1))
         p[0].expTList.append(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] ))
         p[0].info["memory"]=0
 
@@ -608,9 +608,9 @@ def p_UnaryExpr(p):
         p[0]=node()
         #p[0].expList.append(p[1].expList[0]+p[2].expList[0])
         if(len(p[1].expTList)>1):
-            raise NameError("Can't apply unary operators to multiple values")
+            raise NameError("Can't apply unary operators to multiple values", p.lineno(1))
         if(checkUnOprn(p[1].expTList[0], p[2].expTList[0])==None):
-            raise NameError("Invalid types for operator ",p[2].expTList[0])
+            raise NameError("Invalid types for operator ",p[2].expTList[0], p.lineno(1))
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
         if(p[1].expTList[0][0]=="*"):
             p[0].info["memory"]=1
@@ -696,7 +696,7 @@ def p_PrimaryExpr(p):
         p[0].info["memory"]=0
     elif(len(p)==2):
         if(checkUse(p[1],"anywhere")==False):
-            raise NameError("Undeclared identifier "+p[1])
+            raise NameError("Undeclared identifier "+p[1], p.lineno(1))
         p[0]=node()
         p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
         p[0].info["memory"]=1
@@ -708,15 +708,15 @@ def p_PrimaryExpr(p):
         p[0]=p[2]
     elif(p[2].info.get("index")!=None):
         if(p[1].expTList[0][0]!="arr"):
-            raise NameError("The type of this expression is not an array ")
+            raise NameError("The type of this expression is not an array ", p.lineno(1))
         p[0]=p[1]
         p[0].expTList[0]=p[0].expTList[0][1:]
         p[0].info["memory"]=1
     elif(p[2].info.get("arguments")!=None):
         if(p[1].expTList[0][0]!="func" or p[1].info.get("isID")==None):
-            raise NameError("The primary expression is not a function")
+            raise NameError("The primary expression is not a function", p.lineno(1))
         if(p[2].expTList != scopeTab[0].table[p[1].info["isID"]]["takes"]):
-            raise NameError("Signature mismatch for function")
+            raise NameError("Signature mismatch for function", p.lineno(1))
         p[0]=node()
         p[0].expTList=scopeTab[0].table[p[1].info["isID"]]["returns"]
         p[0].info["multi_return"]=1
@@ -726,7 +726,7 @@ def p_Index(p):
     Index : LBRACK Expression RBRACK
     """
     if(p[2].expTList!=[["int"]]):
-        raise NameError("Only integer indices are allowed")
+        raise NameError("Only integer indices are allowed", p.lineno(1))
     p[0]=p[2]
     p[0].info["index"]=1
 
@@ -869,7 +869,7 @@ def p_SimpleStmt(p):
         if(p[1].expTList==[["void"]]):
             a=0
         else:
-            raise NameError("Statement must have void return type")
+            raise NameError("Statement must have void return type", p.lineno(1))
 
 def p_IncDecStmt(p):
     """
@@ -877,20 +877,20 @@ def p_IncDecStmt(p):
                | Expression DEC
     """
     if(p[0].expTList!=[["int"]]):
-        raise NameError("This operation can only be done on integers")
+        raise NameError("This operation can only be done on integers", p.lineno(1))
 
 def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
     if(p[1].info["memory"]==0):
-        raise NameError("Assignment not allowed for this expression list")
+        raise NameError("Assignment not allowed for this expression list", p.lineno(1))
     if(len(p[1].expTList) != len(p[3].expTList)):
-        raise NameError("Imbalanced assignment")
+        raise NameError("Imbalanced assignment", p.lineno(1))
  
     for i in range(0,len(p[1].expTList)):
         if(p[1].expTList[i] != p[3].expTList[i]):
-            raise NameError("Mismatch of type for ",p[1].expTList[i])
+            raise NameError("Mismatch of type for ",p[1].expTList[i], p.lineno(1))
 
 def p_AssignOp(p):
     """
@@ -948,11 +948,11 @@ def p_ShortVarDecl(p):
     ShortVarDecl : IdentifierList DEFINE ExpressionList
     """
     if(len(p[1].idList) != len(p[3].expTList)):
-        raise NameError("Imbalanced assignment")
+        raise NameError("Imbalanced assignment", p.lineno(1))
     
     for i in range(0,p[1].idList):
         if(checkUse(p[1].idList[i],'redeclaration')==True):
-            raise NameError('Redeclaration of identifier:'+p[1].idList[i])
+            raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
 
 def p_IfStmt(p):
@@ -1024,7 +1024,7 @@ parser=yacc.yacc()
 with open(sys.argv[1],'r') as f:
     input_str = f.read()
 
-out=parser.parse(input_str)
+out=parser.parse(input_str,tracking=True)
 
 #outputDot="../"+sys.argv[2][6:]
 #
