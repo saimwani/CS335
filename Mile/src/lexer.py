@@ -7,37 +7,36 @@ reserved={
 	'const' : 'CONST',
 	'continue' : 'CONTINUE',
 	'default' : 'DEFAULT',
-	'defer' : 'DEFER',
+#	'defer' : 'DEFER',
 	'else' : 'ELSE',
 	'fallthrough' : 'FALLTHROUGH',
 	'for' : 'FOR',
 	'func' : 'FUNC',
-	'go' : 'GO',
+#	'go' : 'GO',
 	'goto' : 'GOTO',
 	'if' : 'IF',
 	'import' : 'IMPORT',
 #	'interface' : 'INTERFACE',
-	'map' : 'MAP',
+#	'map' : 'MAP',
 	'package' : 'PACKAGE',
-	'range' : 'RANGE',
+#	'range' : 'RANGE',
 	'return' : 'RETURN',
 #	'select' : 'SELECT',
 	'struct' : 'STRUCT',
 	'switch' : 'SWITCH',
 	'type' : 'TYPE',
 	'var' : 'VAR',
-	'typeassert' : 'TYPEASSERT',
 	'typecast' : 'TYPECAST'
 }
 
-tokens=['ID','INT','FLOAT','IMAG','STRING',
+tokens=['ID','INT','FLOAT','STRING',
         'ADD','SUB','MUL','DIV','MOD',
         'AND','OR','XOR','SHL','SHR','AND_NOT',
         'ADD_ASSIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN','MOD_ASSIGN',
         'AND_ASSIGN','OR_ASSIGN','XOR_ASSIGN','SHL_ASSIGN','SHR_ASSIGN','AND_NOT_ASSIGN',
         'LAND','LOR','INC','DEC',
 	'EQL','LTN','GTN','ASSIGN','NOT',
-        'NEQ','LEQ','GEQ','DEFINE','ELLIPSIS',
+        'NEQ','LEQ','GEQ','DEFINE',
 	'LPAREN','LBRACK','LBRACE','COMMA','DOT',
         'RPAREN','RBRACK','RBRACE','SEMICOLON','COLON', 'RUNE'
 ]
@@ -52,12 +51,6 @@ def t_COMMENT(t):
     global prev_token
     prev_token=t.type
     t.lexer.lineno += t.value.count('\n')
-
-def t_IMAG(t):
-    r'([0-9]+\.[0-9]*(e|E)(\+|-)[0-9]+ | [0-9]+\.[0-9]*(e|E)[0-9]+ | \.[0-9]+(e|E)(\+|-)[0-9]+ | \.[0-9]+(e|E)[0-9]+ | [0-9]+(e|E)(\+|-)[0-9]+ | [0-9]+(e|E)[0-9]+ | [0-9]+\.[0-9]* |   \.[0-9]+ | [1-9]\d* )i  '
-    global prev_token
-    prev_token=t.type
-    return t
 
 def t_FLOAT(t):
     r'[0-9]+\.[0-9]*(e|E)(\+|-)[0-9]+ | [0-9]+\.[0-9]*(e|E)[0-9]+ | \.[0-9]+(e|E)(\+|-)[0-9]+ | \.[0-9]+(e|E)[0-9]+ | [0-9]+(e|E)(\+|-)[0-9]+ | [0-9]+(e|E)[0-9]+ | [0-9]+\.[0-9]* |   \.[0-9]+  '
@@ -295,12 +288,6 @@ def t_NOT(t):
 
 def t_DEFINE(t):
     r':='
-    global prev_token
-    prev_token=t.type
-    return t
-
-def t_ELLIPSIS(t):
-    r'\.\.\.'
     global prev_token
     prev_token=t.type
     return t

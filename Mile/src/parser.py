@@ -34,16 +34,17 @@ scopeTab={}
 scopeList=[0]
 scopeTab[0]=symbolTable()
 currentScope=0
+currentFunc=0
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
-        if(scopeTab[currentScope].search(ident) is not None):
+        if(scopeTab[currentScope].search(ident)!=None):
             return True
         else:
             return False
     if(checkWhat=='anywhere'):
         for x in scopeList[::-1]:
-            if(scopeTab[x].search(ident) is not None)
+            if(scopeTab[x].search(ident)!=None):
                 return x
         return False
 
@@ -55,7 +56,10 @@ def openS():
     scopeList.append(currentScope)
     scopeTab[currentScope]=symbolTable()
     scopeTab[currentScope].assignParent(prevScope)
-    scopeTab[currentScope].typeList=scopeTab[prevScope].typeList 
+    scopeTab[currentScope].typeList=scopeTab[prevScope].typeList
+    for x in scopeTab[0].table:
+        if(scopeTab[0].table[x]["type"]==["func"]):
+            scopeTab[currentScope].insert(x,["func"])
 
 def closeS():
     global currentScope
@@ -63,6 +67,53 @@ def closeS():
     currentScope=scopeList[-2]
     scopeList=scopeList[0:-1]
 
+def checkOprn(exp1,binop,exp2):
+    if(len(exp1)>1 or len(exp2)>1):
+        return None
+    binop=binop[0]
+    exp1=exp1[0]
+    exp2=exp2[0]
+    if(exp1!=exp2):
+        return None
+    if(exp1=="int" or exp1=="rune"):
+        return exp1
+    if(exp1=="float"):
+        if(binop=="|" or binop=="^" or binop=="<<" or binop==">>" or binop=="%" or binop=="&" or binop=="&^"):
+            return None
+        else:
+            return exp1
+    if(exp1=="string"):
+        if(binop=="+"):
+            return exp1
+        else:
+            return None
+    
+def checkUnOprn(unop,exp1):
+    unop=unop[0]
+    if(unop=="+" or unop=="-"):
+        if(len(exp1)>1):
+            return None
+        exp1=exp1[0]
+        if(exp1=="int" or exp1=="float" or exp1=="rune"):
+            return exp1
+        else:
+            return None
+    if(unop=="^" or unop=="!"):
+        if(len(exp) >1 or exp1[0]!="int"):
+            return None
+        else:
+            return exp1
+    if(unop=="*"):
+        if(exp1[0]!="pointer"):
+            return None
+        exp1=exp1[1:]
+        return exp1
+    if(unop=="&"):
+        #to be done later
+        exp2=["pointer"]
+        exp1= exp2+exp1
+        return exp1
+    
 def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
@@ -70,10 +121,11 @@ def p_SourceFile(p):
 
 def p_OpenS(p):
     "OpenS : "
-    addS()
+    openS()
 
 def p_CloseS(p):
     "CloseS : "
+    print(scopeTab[currentScope].table)
     closeS()
 
 def p_OpenStructS(p):
@@ -100,10 +152,6 @@ def p_PackageClause(p):
     """
     PackageClause : PACKAGE ID
     """
-    if(checkUse(p[2],'redeclaration')==True):
-        raise NameError("Redeclaration of variable:"+p[2])
-    else:
-        scopeTab[currentScope].insert(p[2],['package'])
 
 def p_ImportDecl(p):
     """
@@ -168,7 +216,7 @@ def p_ConstSpec(p):
             raise NameError('Redeclaration of identifier:'+x)
         else:
             if(isinstance(p[2],str)):
-                scopeTab[currentScope].insert(x,p[2])
+                scopeTab[currentScope].insert(x,[p[2]])
             else:
                 scopeTab[currentScope].insert(x,p[2].type)
             scopeTab[currentScope].updateList(x,'constant',True)
@@ -200,9 +248,17 @@ def p_ExpressionList(p):
     p[0]=node()
     if(len(p)==2):
         p[0].expTList+=p[1].expTList
+        if(p[1].info["memory"]==1):
+            p[0].info["memory"]=1
+        else:
+            p[0].info["memory"]=0
     else:
         p[0].expTList+=p[1].expTList
         p[0].expTList+=p[3].expTList
+        if(p[1].info["memory"]==1 and p[3].info["memory"]==1):
+            p[0].info["memory"]=1
+        else:
+            p[0].info["memory"]=0
 
 def p_TypeDecl(p):
     """
@@ -257,7 +313,7 @@ def p_VarSpec(p):
                 raise NameError('Redeclaration of identifier:'+x)
             else:
                 if(isinstance(p[2],str)):
-                    scopeTab[currentScope].insert(x,p[2])
+                    scopeTab[currentScope].insert(x,[p[2]])
                 else:
                     scopeTab[currentScope].insert(x,p[2].type)
     
@@ -278,8 +334,18 @@ def p_VarSpec(p):
 
 def p_FunctionDecl(p):
     """
-    FunctionDecl : FUNC ID OpenS Signature Block CloseS
+    FunctionDecl : FUNC FuncName OpenS Signature Block CloseS
     """
+
+def p_FuncName(p):
+    """
+    FuncName : ID 
+    """
+    global currentFunc 
+    if(checkUse(p[1],'redeclaration')==True):
+        raise NameError('The name of function has been used elsewhere :'+p[1])
+    scopeTab[0].insert(p[1],["func"])
+    currentFunc=p[1] 
 
 def p_Type(p):
     """
@@ -312,7 +378,7 @@ def p_ArrayType(p):
     ArrayType : LBRACK Expression RBRACK Type
               | LBRACK Expression RBRACK ID
     """
-    if(p[2].expTList[0]!=["int"]):
+    if(p[2].expTList!=[["int"]]):
         raise NameError("Array index must be integer")
     if(isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[4])
@@ -393,12 +459,38 @@ def p_Signature(p):
 #introduced CHAN
 def p_Result(p):
     """
-    Result : Parameters
-           | Type
-           | ID
-           | ID DOT ID
+    Result : LPAREN TypeList RPAREN
            | CHAN
     """
+    if(isinstance(p[1],str)):
+        scopeTab[0].updateList(currentFunc,"returns",[["void"]])
+    else:
+        scopeTab[0].updateList(currentFunc,"returns",p[2].idList)
+
+def p_TypeList(p):
+    """
+    TypeList : CHAN ID
+             | CHAN Type
+             | TypeList COMMA CHAN ID
+             | TypeList COMMA CHAN Type
+    """
+    if(isinstance(p[2],str) and p[2]!=',' and not p[2] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid return type "+p[2])
+    if(len(p)==5 and isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid return type "+p[4])
+    p[0]=node()
+    if(len(p)==3):
+        if(isinstance(p[2],str)):
+            p[0].idList.append([p[2]])
+        else:
+            p[0].idList.append(p[2].type)
+    else:
+        if(isinstance(p[4],str)):
+            p[0].idList=p[1].idList
+            p[0].idList.append([p[4]])
+        else:
+            p[0].idList=p[1].idList
+            p[0].idList.append(p[4].type)
 
 def p_Parameters(p):
     """
@@ -406,26 +498,24 @@ def p_Parameters(p):
                | LPAREN ParameterList RPAREN
                | LPAREN ParameterList COMMA RPAREN
     """
+    if(len(p)==3):
+        scopeTab[0].updateList(currentFunc,"takes",[["void"]])
+    else:
+        scopeTab[0].updateList(currentFunc,"takes",p[2].idList)
 
 #Introduced CHAN
 
 def p_ParameterList(p):
     """
     ParameterList : ParameterDecl
-                  | CHAN ID
-                  | CHAN ID DOT ID
-                  | CHAN Type
-                  | ParameterList COMMA CHAN ID
-                  | ParameterList COMMA CHAN ID DOT ID
-                  | ParameterList COMMA CHAN Type
                   | ParameterList COMMA ParameterDecl
     """
-
-def p_ParaIdList(p):
-    """
-    ParaIdList : ID COMMA ID
-               | ParaIdList COMMA ID
-    """
+    p[0]=node()
+    if(len(p)==2):
+        p[0]=p[1]
+    else:
+        p[0].idList=p[1].idList
+        p[0].idList+=(p[3].idList)
 
 def p_ParameterDecl(p):
     """
@@ -433,10 +523,46 @@ def p_ParameterDecl(p):
                   | ID Type
                   | ParaIdList ID
                   | ID ID
-                  | ParaIdList ID DOT ID
-                  | ID ID DOT ID
-
     """
+    if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid type of identifier "+p[2])
+   
+    p[0]=node()
+    if(not isinstance(p[1],str)):
+        for x in p[1].idList:
+            if(checkUse(x,'redeclaration')==True):
+                    raise NameError('Redeclaration of identifier:'+x)
+            else:
+                if(isinstance(p[2],str)):
+                    scopeTab[currentScope].insert(x,[p[2]])
+                    p[0].idList.append([p[2]])
+                else:
+                    scopeTab[currentScope].insert(x,p[2].type)
+                    p[0].idList.append(p[2].type)
+    else:
+        if(checkUse(p[1],'redeclaration')==True):
+            raise NameError('Redeclaration of identifier:'+x)
+        else:
+            if(isinstance(p[2],str)):
+                scopeTab[currentScope].insert(p[1], [p[2]])
+                p[0].idList.append([p[2]])
+            else:
+                scopeTab[currentScope].insert(p[1], p[2].type)
+                p[0].idList.append(p[2].type)
+
+
+def p_ParaIdList(p):
+    """
+    ParaIdList : ID COMMA ID
+               | ParaIdList COMMA ID
+    """
+    p[0]=node()
+    if(isinstance(p[1],str)):
+        p[0].idList.append(p[1])
+        p[0].idList.append(p[3])
+    else:
+        p[0].idList=p[1].idList
+        p[0].idList.append(p[3])
 
 def p_Block(p):
     """
@@ -464,9 +590,12 @@ def p_Expression(p):
     else:
         p[0]=node()
         #p[0].expList.append(p[1].expList[0]+p[2].expList[0]+p[3].expList[0])
+        if(len(p[1].expTList)>1 or len(p[3].expTList)>1):
+            raise NameError("Can't apply binary operators to multiple values")
         if(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] )==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0])
         p[0].expTList.append(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] ))
+        p[0].info["memory"]=0
 
 def p_UnaryExpr(p):
     """
@@ -478,9 +607,15 @@ def p_UnaryExpr(p):
     else:
         p[0]=node()
         #p[0].expList.append(p[1].expList[0]+p[2].expList[0])
+        if(len(p[1].expTList)>1):
+            raise NameError("Can't apply unary operators to multiple values")
         if(checkUnOprn(p[1].expTList[0], p[2].expTList[0])==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0])
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
+        if(p[1].expTList[0][0]=="*"):
+            p[0].info["memory"]=1
+        else:
+            p[0].info["memory"]=0
 
 def p_BinaryOp(p):
     """
@@ -558,11 +693,14 @@ def p_PrimaryExpr(p):
     #Slices isn't implememted indefinitely
     if(len(p)==2 and not isinstance(p[1],str)):
         p[0]=p[1]
+        p[0].info["memory"]=0
     elif(len(p)==2):
         if(checkUse(p[1],"anywhere")==False):
             raise NameError("Undeclared identifier "+p[1])
         p[0]=node()
-        p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")][p[1]]["type"])
+        p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
+        p[0].info["memory"]=1
+        p[0].info["isID"]=p[1]
     elif(isinstance(p[1],str) and p[1]!='('):
         a=0
         #Not to be done before declaring structs
@@ -573,17 +711,21 @@ def p_PrimaryExpr(p):
             raise NameError("The type of this expression is not an array ")
         p[0]=p[1]
         p[0].expTList[0]=p[0].expTList[0][1:]
+        p[0].info["memory"]=1
     elif(p[2].info.get("arguments")!=None):
-        #TO de done after doinf functions
-        if(p[1].expTList[0][0]!="func"):
+        if(p[1].expTList[0][0]!="func" or p[1].info.get("isID")==None):
             raise NameError("The primary expression is not a function")
-        signature=scopeTab[0][p[1]]
+        if(p[2].expTList != scopeTab[0].table[p[1].info["isID"]]["takes"]):
+            raise NameError("Signature mismatch for function")
+        p[0]=node()
+        p[0].expTList=scopeTab[0].table[p[1].info["isID"]]["returns"]
+        p[0].info["multi_return"]=1
 
 def p_Index(p):
     """
     Index : LBRACK Expression RBRACK
     """
-    if(p[2].expTList[0]!="int"):
+    if(p[2].expTList!=[["int"]]):
         raise NameError("Only integer indices are allowed")
     p[0]=p[2]
     p[0].info["index"]=1
@@ -608,9 +750,11 @@ def p_Arguments(p):
     if(len(p)==3):
         p[0]=node()
         p[0].info["arguments"]=1
+        p[0].expTList.append(["void"])
     else:
         p[0]=p[2]
         p[0].info["arguments"]=1
+        p[0].expTList=p[2].expTList
 
 def p_Conversion(p):
     """
@@ -720,27 +864,32 @@ def p_SimpleStmt(p):
                | ShortVarDecl
                |
     """
+    if(type(p[1])==node):
+        if(p[1].expTList==[["void"]]):
+            a=0
+        else:
+            raise NameError("Statement must have void return type")
 
 def p_IncDecStmt(p):
     """
     IncDecStmt : Expression INC
                | Expression DEC
     """
-    if(p[0].expTList[0]!="int"):
+    if(p[0].expTList!=[["int"]]):
         raise NameError("This operation can only be done on integers")
 
 def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
-    #help us abhinav
+    if(p[1].info["memory"]==0):
+        raise NameError("Assignment not allowed for this expression list")
     if(len(p[1].expTList) != len(p[3].expTList)):
         raise NameError("Imbalanced assignment")
-    
-    for i in range(0,len(p[1].idList)):
-        if(p[3].expTList[i] != p[3].expTList[i]):
-            raise ("Mismatch of type for "+p[1].idList[i])
-    
+ 
+    for i in range(0,len(p[1].expTList)):
+        if(p[1].expTList[i] != p[3].expTList[i]):
+            raise NameError("Mismatch of type for ",p[1].expTList[i])
 
 def p_AssignOp(p):
     """
@@ -807,10 +956,10 @@ def p_ShortVarDecl(p):
 
 def p_IfStmt(p):
     """
-    IfStmt : IF Expression OpenS Block CloseS 
+    IfStmt : IF OpenS Expression Block CloseS 
            | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS 
-           | IF Expression OpenS Block CloseS ELSE IfStmt
-           | IF Expression OpenS Block CloseS ELSE OpenS Block CloseS 
+           | IF OpenS Expression Block CloseS ELSE IfStmt
+           | IF OpenS Expression Block CloseS ELSE OpenS Block CloseS 
            | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE OpenS Block CloseS 
            | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE IfStmt
     """
@@ -824,7 +973,7 @@ def p_ExprSwitchStmt(p):
     """
         ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
                        | SWITCH OpenS SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH Expression OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
+                       | SWITCH OpenS Expression LBRACE ExprCaseClause_curl RBRACE CloseS 
                        | SWITCH OpenS SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE CloseS
     """
 
@@ -847,7 +996,7 @@ def p_ExprSwitchCase(p):
 #Removed rangeclause for unknown reasons
 def p_ForStmt(p):
     """
-    ForStmt : FOR Expression OpenS Block CloseS      
+    ForStmt : FOR OpenS Expression Block CloseS      
             | FOR OpenS ForClause Block CloseS 
             | FOR OpenS Block CloseS  
     """
@@ -876,37 +1025,37 @@ with open(sys.argv[1],'r') as f:
 
 out=parser.parse(input_str)
 
-outputDot="../"+sys.argv[2][6:]
-
-alist=out
-file1 = open(outputDot,"w")#write mode
-file1.write("digraph graphname {")
-file1.write("\n")
-counter=0
-def writeGraph(someList):
-    global counter
-    local=counter
-    counter+=1
-    name=someList[0]
-    if(len(someList) > 1):
-        for innerList in someList[1:]:
-            if(len(innerList) >0):
-                file1.write(str(local))
-                file1.write ("[label=\"")
-                file1.write (name)
-                file1.write ("\" ] ;")
-                file1.write(str(counter))
-                file1.write ("[label=\"")
-                if ((innerList[0][0])=="\""):
-                    innerList[0]=innerList[0][1:-1]
-                file1.write (innerList[0])
-                file1.write ("\" ] ;")
-                file1.write(str(local) + "->" + str(counter) + ";")
-                file1.write("\n")
-                writeGraph(innerList)
-writeGraph(alist)
-file1.write("}")
-file1.close()
-outputTree="../"+sys.argv[1][15:]+".ps"
-
-os.system("dot -Tps "+ outputDot+" -o "+outputTree)
+#outputDot="../"+sys.argv[2][6:]
+#
+#alist=out
+#file1 = open(outputDot,"w")#write mode
+#file1.write("digraph graphname {")
+#file1.write("\n")
+#counter=0
+#def writeGraph(someList):
+#    global counter
+#    local=counter
+#    counter+=1
+#    name=someList[0]
+#    if(len(someList) > 1):
+#        for innerList in someList[1:]:
+#            if(len(innerList) >0):
+#                file1.write(str(local))
+#                file1.write ("[label=\"")
+#                file1.write (name)
+#                file1.write ("\" ] ;")
+#                file1.write(str(counter))
+#                file1.write ("[label=\"")
+#                if ((innerList[0][0])=="\""):
+#                    innerList[0]=innerList[0][1:-1]
+#                file1.write (innerList[0])
+#                file1.write ("\" ] ;")
+#                file1.write(str(local) + "->" + str(counter) + ";")
+#                file1.write("\n")
+#                writeGraph(innerList)
+#writeGraph(alist)
+#file1.write("}")
+#file1.close()
+#outputTree="../"+sys.argv[1][15:]+".ps"
+#
+#os.system("dot -Tps "+ outputDot+" -o "+outputTree)

@@ -1,0 +1,10 @@
+package main
+import "fmt"
+var a int
+func abs(ad,ag int, fj,kl float) (chan string, chan string){
+    ag=fj
+}
+func main() chan{
+    var a int
+    var c int
+}
