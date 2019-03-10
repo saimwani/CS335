@@ -1,26 +1,8 @@
 package main
 import "fmt"
-var a int
-type cd struct{
-    ab float
-}
-type ab struct{
-    v,m int
-    c *cd
-    ab struct *ab
-}
-func abs(ad,ag int, fj,kl float) {
-    ad =3
-    var a string
-    a="dddd"
-    return 
+func fac(i int) (int) {
+    return fac(i-1)*i
 }
 func main() {
-    var a int
-    var b int
-    if a<b {
-        a=56
-    } else if (a || b) || (b<a) {
-        b=98
-    }
+    var  a int= fac(9)    
 }

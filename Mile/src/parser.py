@@ -1,3 +1,7 @@
+#TODO constant checking in assignment operations
+#
+#
+#
 import ply.yacc as yacc
 import os
 import pprint
@@ -31,10 +35,13 @@ precedence = (
     ('left', 'MUL', 'DIV','MOD','AND','AND_NOT','SHL','SHR'),
 )
 
+basicTypes=["int","float","rune","string","bool"]
 scopeTab={}
 scopeList=[0]
+offsetList=[0]
 scopeTab[0]=symbolTable()
 currentScope=0
+scopeNum=0
 currentFunc=0
 currentStruct=0
 currentSwitch=0
@@ -55,9 +62,12 @@ def checkUse(ident,checkWhat):
 def openS():
     global currentScope 
     global scopeList 
+    global scopeNum 
     prevScope=currentScope
-    currentScope+=1
+    scopeNum+=1
+    currentScope=scopeNum 
     scopeList.append(currentScope)
+    offsetList.append(0)
     scopeTab[currentScope]=symbolTable()
     scopeTab[currentScope].assignParent(prevScope)
     scopeTab[currentScope].typeList=scopeTab[prevScope].typeList
@@ -140,6 +150,11 @@ def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
     """
+    print("-----------------------------------------------------------------------")
+    for x in range(0,scopeNum+1):
+        print("Table number",x)
+        pprint.pprint(scopeTab[x].table)
+        print("-----------------------------------------------------------------------")
 
 def p_OpenS(p):
     "OpenS : "
@@ -147,12 +162,6 @@ def p_OpenS(p):
 
 def p_CloseS(p):
     "CloseS : "
-    print("-----------------------------------------------------------------------")
-    print("Scope number is ",currentScope)
-    pprint.pprint(scopeTab[currentScope].table)
-    print("-----------------------------------------------------------------------")
-    print("Scope number is ",0)
-    pprint.pprint(scopeTab[0].table)
     closeS()
 
 def p_OpenStructS(p):
@@ -232,10 +241,9 @@ def p_ConstSpec_curl(p):
 def p_ConstSpec(p):
     """
     ConstSpec : IdentifierList ID ASSIGN ExpressionList
-              | IdentifierList Type ASSIGN ExpressionList
     """
-    if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[2], p.lienno(1))
+    if(isinstance(p[2],str) and not p[2] in basicTypes):
+        raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
     
     for x in p[1].idList:
         if(checkUse(x,'redeclaration')==True):
@@ -243,8 +251,8 @@ def p_ConstSpec(p):
         else:
             if(isinstance(p[2],str)):
                 scopeTab[currentScope].insert(x,[p[2]])
-            else:
-                scopeTab[currentScope].insert(x,p[2].type)
+                scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+                offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
             scopeTab[currentScope].updateList(x,'constant',True)
     
     if(len(p[1].idList) != len(p[4].expTList)):
@@ -304,29 +312,6 @@ def p_StructName(p):
         raise NameError("This name has been already assigned", p.lineno(1))
     scopeTab[currentScope].insert(p[1],["struct"]) 
 
-#def p_TypeDecl(p):
-#    """
-#    TypeDecl : TYPE TypeSpec
-#             | TYPE LPAREN TypeSpec_curl RPAREN
-#    """
-#
-#def p_TypeSpec_curl(p):
-#    """
-#    TypeSpec_curl : TypeSpec_curl TypeSpec SEMICOLON
-#                  |
-#    """
-#
-#def p_TypeSpec(p):
-#    """
-#    TypeSpec : TypeDef
-#    """
-#
-#def p_TypeDef(p):
-#    """
-#    TypeDef : ID Type
-#            | ID ID
-#    """
-
 def p_VarDecl(p):
     """
     VarDecl : VAR VarSpec
@@ -361,10 +346,10 @@ def p_VarSpec(p):
                     scopeTab[currentScope].insert(x,p[2].type)
     
     if(len(p)==5):
-        if(len(p[1].idList) != len(p[4].idList)):
+        if(len(p[1].idList) != len(p[4].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
         for i in range(0,len(p[1].idList)):
-            if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
+            if(p[4].expTList[i] != scopeTab[currentScope].table[p[1].idList[i]]["type"]):
                 raise ("Mismatch of type for "+p[1].idList[i])
     
     if(len(p)==4):
@@ -404,6 +389,7 @@ def p_Type(p):
         if(isinstance(p[2],str)):
             p[0]=node()
             p[0].type.append(p[2])
+            p[0].info["typesize"]=scopeTab[currentScope].typeSList[p[2]]
         else:
             p[0]=p[2]
 
@@ -417,21 +403,22 @@ def p_TypeLit(p):
 
 def p_ArrayType(p):
     """
-    ArrayType : LBRACK Expression RBRACK Type
-              | LBRACK Expression RBRACK ID
+    ArrayType : LBRACK INT RBRACK Type
+              | LBRACK INT RBRACK ID
     """
-    if(p[2].expTList!=[["int"]]):
-        raise NameError("Array index must be integer", p.lienno(1))
-    if(isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type of identifier "+p[4], p.lineno(1))
+    if(isinstance(p[4],str) and not p[4] in basicTypes):
+        raise NameError("Only basic types of array are allowed "+p[4], p.lineno(1))
+    temp=int(p[2])
     if(isinstance(p[4],str)):
         p[0]=node()
-        p[0].type.append("arr")
+        p[0].type.append("arr"+p[2])
         p[0].type.append(p[4])
+        p[0].info["typesize"]=temp*scopeTab[currentScope].typeSList[p[4]]
     else:
         p[0]=node()
-        p[0].type.append("arr")
+        p[0].type.append("arr"+p[2])
         p[0].type+=p[4].type
+        p[0].info["typesize"]=temp*p[4].info["typesize"]
 
 def p_SliceType(p):
     """
@@ -528,10 +515,12 @@ def p_PointerType(p):
         p[0]=node()
         p[0].type.append("pointer")
         p[0].type.append(p[2])
+        p[0].info["typesize"]=4
     else:
         p[0]=node()
         p[0].type.append("pointer")
         p[0].type+=p[2].type
+        p[0].info["typesize"]=4
 
 def p_Signature(p):
     """
@@ -993,6 +982,10 @@ def p_ReturnStmt(p):
     ReturnStmt : RETURN ExpressionList
                | RETURN
     """
+    if(len(p)==2 and not scopeTab[0].table[currentFunc]["returns"]==[["void"]]):
+        raise NameError("The return type for this function is not void",p.lineno(1))
+    if(len(p)==3 and not scopeTab[0].table[currentFunc]["returns"]==p[2].expTList):
+        raise NameError("The return type for this function doesn't match",p.lineno(1))
 
 def p_BreakStmt(p):
     """
