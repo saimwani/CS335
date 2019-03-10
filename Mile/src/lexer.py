@@ -2,8 +2,7 @@ import ply.lex as lex
 reserved={
 	'break' : 'BREAK',
 	'case' : 'CASE',
-#Used CHAN in MethodExpr in parser to remove conflicts
-	'chan' : 'CHAN',
+#        'chan' : 'CHAN',
 	'const' : 'CONST',
 	'continue' : 'CONTINUE',
 	'default' : 'DEFAULT',
@@ -26,7 +25,8 @@ reserved={
 	'switch' : 'SWITCH',
 	'type' : 'TYPE',
 	'var' : 'VAR',
-	'typecast' : 'TYPECAST'
+        'True' : 'TRUE',
+        'False' : 'FALSE',
 }
 
 tokens=['ID','INT','FLOAT','STRING',

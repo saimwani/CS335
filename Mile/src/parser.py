@@ -1,5 +1,6 @@
 import ply.yacc as yacc
 import os
+import pprint
 import lexer
 import sys
 from symTab import symbolTable
@@ -35,6 +36,9 @@ scopeList=[0]
 scopeTab[0]=symbolTable()
 currentScope=0
 currentFunc=0
+currentStruct=0
+currentSwitch=0
+structSymbolList=[]
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
@@ -60,6 +64,9 @@ def openS():
     for x in scopeTab[0].table:
         if(scopeTab[0].table[x]["type"]==["func"]):
             scopeTab[currentScope].insert(x,["func"])
+    for x in scopeTab[prevScope].table:
+        if(scopeTab[prevScope].table[x]["type"]==["struct"]):
+            scopeTab[currentScope].table[x]=scopeTab[prevScope].table[x]
 
 def closeS():
     global currentScope
@@ -75,9 +82,18 @@ def checkOprn(exp1,binop,exp2):
     exp2=exp2[0]
     if(exp1!=exp2):
         return None
+    if(binop=="||" or binop=="&&"):
+        if(exp1=="bool"):
+            return [exp1]
+        else:
+            return None
     if(exp1=="int" or exp1=="rune"):
+        if(binop == ">" or binop =="<" or binop=="==" or binop==">=" or binop=="<="or binop=="!="):
+            return ["bool"]
         return [exp1]
     if(exp1=="float"):
+        if(binop == ">" or binop =="<" or binop=="==" or binop==">=" or binop=="<=" or binop=="==" or binop=="!="):
+            return ["bool"]
         if(binop=="|" or binop=="^" or binop=="<<" or binop==">>" or binop=="%" or binop=="&" or binop=="&^"):
             return None
         else:
@@ -98,7 +114,14 @@ def checkUnOprn(unop,exp1):
             return [exp1]
         else:
             return None
-    if(unop=="^" or unop=="!"):
+    if(unop == "!"):
+        if(len(exp1)>1):
+            return None
+        if(exp1==["bool"]):
+            return exp1
+        else:
+            return None
+    if(unop=="^"):
         if(len(exp) >1 or exp1[0]!="int"):
             return None
         else:
@@ -109,7 +132,6 @@ def checkUnOprn(unop,exp1):
         exp1=exp1[1:]
         return exp1
     if(unop=="&"):
-        #to be done later
         exp2=["pointer"]
         exp1= exp2+exp1
         return exp1
@@ -125,16 +147,20 @@ def p_OpenS(p):
 
 def p_CloseS(p):
     "CloseS : "
-    print(scopeTab[0].table)
+    print("-----------------------------------------------------------------------")
+    print("Scope number is ",currentScope)
+    pprint.pprint(scopeTab[currentScope].table)
+    print("-----------------------------------------------------------------------")
+    print("Scope number is ",0)
+    pprint.pprint(scopeTab[0].table)
     closeS()
 
 def p_OpenStructS(p):
     "OpenStructS : "
-    p[0]=[]
+    structSymbolList=[]
 
 def p_CloseStructS(p):
     "CloseStructS : "
-    p[0]=[]
 
 def p_TopLevelDecl_curl(p):
     """
@@ -187,7 +213,7 @@ def p_TopLevelDecl(p):
 def p_Declaration(p):
     """
     Declaration : ConstDecl
-                | TypeDecl
+                | StructDecl
                 | VarDecl
     """
 
@@ -260,29 +286,46 @@ def p_ExpressionList(p):
         else:
             p[0].info["memory"]=0
 
-def p_TypeDecl(p):
+def p_StructDecl(p):
     """
-    TypeDecl : TYPE TypeSpec
-             | TYPE LPAREN TypeSpec_curl RPAREN
+    StructDecl : TYPE StructName StructType 
     """
+    scopeTab[currentScope].typeList.append(currentStruct)
 
-def p_TypeSpec_curl(p):
+def p_StructName(p):
     """
-    TypeSpec_curl : TypeSpec_curl TypeSpec SEMICOLON
-                  |
+    StructName : ID
     """
+    global currentStruct
+    currentStruct=p[1]
+    if(p[1] in scopeTab[currentScope].typeList):
+        raise NameError("StructName has been already used", p.lineno(1))
+    if(p[1] in scopeTab[currentScope].table):
+        raise NameError("This name has been already assigned", p.lineno(1))
+    scopeTab[currentScope].insert(p[1],["struct"]) 
 
-def p_TypeSpec(p):
-    """
-    TypeSpec : TypeDef
-    """
-
-def p_TypeDef(p):
-    """
-    TypeDef : ID Type
-            | ID ID
-            | ID ID DOT ID
-    """
+#def p_TypeDecl(p):
+#    """
+#    TypeDecl : TYPE TypeSpec
+#             | TYPE LPAREN TypeSpec_curl RPAREN
+#    """
+#
+#def p_TypeSpec_curl(p):
+#    """
+#    TypeSpec_curl : TypeSpec_curl TypeSpec SEMICOLON
+#                  |
+#    """
+#
+#def p_TypeSpec(p):
+#    """
+#    TypeSpec : TypeDef
+#    """
+#
+#def p_TypeDef(p):
+#    """
+#    TypeDef : ID Type
+#            | ID ID
+#    """
 
 def p_VarDecl(p):
     """
@@ -327,7 +370,7 @@ def p_VarSpec(p):
     if(len(p)==4):
         if(len(p[1].idList) != len(p[3].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
-        for i in range(0,p[1].idList):
+        for i in range(0,len(p[1].idList)):
             if(checkUse(p[1].idList[i],'redeclaration')==True):
                 raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
@@ -367,7 +410,6 @@ def p_Type(p):
 def p_TypeLit(p):
     """
     TypeLit : ArrayType
-            | StructType
             | PointerType
             | SliceType
     """
@@ -411,8 +453,6 @@ def p_StructType(p):
     """
     StructType : STRUCT OpenStructS LBRACE FieldDecl_curl RBRACE CloseStructS
     """
-    #p[0]=node()
-    #p[0].type.append("struct")
 
 def p_FieldDecl_curl(p):
     """
@@ -426,14 +466,56 @@ def p_FieldDecl(p):
               | ID COMMA IdentifierList ID
               | ID Type
               | ID ID
+              | ID STRUCT MUL ID
+              | ID COMMA IdentifierList STRUCT MUL ID
     """
-    #if(len(p)==3):
-    #    if(checkUse(p[1],'redeclaration')==True)
-    #        raise NameError("Redeclaration of variable in struct")\
-    #    if(isinstance(p[2],str) and p[2] not in scopeTab[currentScope].typeList):
-    #        raise NameError("Type undefined "+p[2])
-    #    if(isinstance(p[2],str)):
-
+    if(len(p)==3):
+        if(isinstance(p[2],str)):
+            if(p[1] in structSymbolList):
+                raise NameError("This identifier is already declared in this list", p.lineno(1))
+            structSymbolList.append(p[1])
+            scopeTab[currentScope].updateList(currentStruct,p[1],[p[2]])
+        else:
+            if(p[1] in structSymbolList):
+                raise NameError("This identifier is already declared in this list", p.lineno(1))
+            structSymbolList.append(p[1])
+            scopeTab[currentScope].updateList(currentStruct,p[1],p[2].type)
+    elif(len(p)==5 and not isinstance(p[3],str)):
+        if(isinstance(p[4],str)):
+            if(p[1] in structSymbolList):
+                raise NameError("This identifier is already declared in this list", p.lineno(1))
+            structSymbolList.append(p[1])
+            scopeTab[currentScope].updateList(currentStruct,p[1],[p[4]])
+            for x in p[3].idList:
+                if(x in structSymbolList):
+                    raise NameError("This identifier is already declared in this list", p.lineno(1))
+                structSymbolList.append(x)
+                scopeTab[currentScope].updateList(currentStruct,x,[p[4]])
+        else:
+            if(p[1] in structSymbolList):
+                raise NameError("This identifier is already declared in this list", p.lineno(1))
+            structSymbolList.append(p[1])
+            scopeTab[currentScope].updateList(currentStruct,p[1],p[4].type)
+            for x in p[3].idList:
+                if(x in structSymbolList):
+                    raise NameError("This identifier is already declared in this list", p.lineno(1))
+                structSymbolList.append(x)
+                scopeTab[currentScope].updateList(currentStruct,x,p[4].type)
+    elif(len(p)==5):
+        if(p[4]!=currentStruct):
+            raise NameError("The identifier should be the current struct", p.lineno(1))
+        structSymbolList.append(p[1])
+        scopeTab[currentScope].updateList(currentStruct, p[1], ["pointer",currentStruct])
+    else:
+        if(p[6]!=currentStruct):
+            raise NameError("The identifier should be the current struct", p.lineno(1))
+        structSymbolList.append(p[1])
+        scopeTab[currentScope].updateList(currentStruct, p[1], ["pointer",currentStruct])
+        for x in p[3].idList:
+            if(x in structSymbolList):
+                raise NameError("This identifier is already declared in this list", p.lineno(1))
+            structSymbolList.append(x)
+            scopeTab[currentScope].updateList(currentStruct,x,["pointer",currentStruct])
 
 def p_PointerType(p):
     """
@@ -460,9 +542,9 @@ def p_Signature(p):
 def p_Result(p):
     """
     Result : LPAREN TypeList RPAREN
-           | CHAN
+           |
     """
-    if(len(p)==2):
+    if(len(p)==1):
         scopeTab[0].updateList(currentFunc,"returns",[["void"]])
     else:
         scopeTab[0].updateList(currentFunc,"returns",p[2].idList)
@@ -679,13 +761,13 @@ def p_UnaryOp(p):
     p[0]=node()
     p[0].expTList.append([p[1]])
 
+#Removed Conversion
 def p_PrimaryExpr(p):
     """
     PrimaryExpr : Literal
                 | ID
                 | ID DOT ID
                 | LPAREN Expression RPAREN
-                | Conversion
                 | PrimaryExpr Index
                 | PrimaryExpr Slice
                 | PrimaryExpr Arguments
@@ -702,8 +784,15 @@ def p_PrimaryExpr(p):
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
     elif(isinstance(p[1],str) and p[1]!='('):
-        a=0
-        #Not to be done before declaring structs
+        temp=scopeTab[currentScope].table[p[1]]["type"][0]
+        if(p[1] in scopeTab[currentScope].table and scopeTab[currentScope].table[temp]["type"]==["struct"]):
+            if(scopeTab[currentScope].table[temp].get(p[3])==None):
+                raise NameError("No such attribute of given struct",p.lineno(1))
+            p[0]=node()
+            p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
+            p[0].info["memory"]=1
+        else:
+            raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
     elif(len(p)==4):
         p[0]=p[2]
     elif(p[2].info.get("index")!=None):
@@ -720,6 +809,7 @@ def p_PrimaryExpr(p):
         p[0]=node()
         p[0].expTList=scopeTab[0].table[p[1].info["isID"]]["returns"]
         p[0].info["multi_return"]=1
+        p[0].info["memory"]=0
 
 def p_Index(p):
     """
@@ -756,13 +846,13 @@ def p_Arguments(p):
         p[0].info["arguments"]=1
         p[0].expTList=p[2].expTList
 
-def p_Conversion(p):
-    """
-    Conversion : TYPECAST Type LPAREN Expression COMMA RPAREN
-               | TYPECAST Type LPAREN Expression RPAREN
-               | TYPECAST ID LPAREN Expression COMMA RPAREN
-               | TYPECAST ID LPAREN Expression RPAREN
-    """
+#def p_Conversion(p):
+#    """
+#    Conversion : TYPECAST Type LPAREN Expression COMMA RPAREN
+#               | TYPECAST Type LPAREN Expression RPAREN
+#               | TYPECAST ID LPAREN Expression COMMA RPAREN
+#               | TYPECAST ID LPAREN Expression RPAREN
+#    """
 
 def p_Literal(p):
     """
@@ -776,8 +866,24 @@ def p_BasicLit(p):
              | FloatLit
              | RuneLit
              | StringLit
+             | TrueLit
+             | FalseLit
     """
     p[0]=p[1]
+
+def p_TrueLit(p):
+    """
+    TrueLit : TRUE
+    """
+    p[0]=node()
+    p[0].expTList.append(["bool"])
+
+def p_FalseLit(p):
+    """
+    FalseLit : FALSE
+    """
+    p[0]=node()
+    p[0].expTList.append(["bool"])
 
 def p_IntLit(p):
     """
@@ -806,39 +912,6 @@ def p_StringLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["string"])
-
-#Removed struct assignments in compositelit
-
-#"""
-#CompositeLit : ArrayType LiteralValue
-#             | SliceType  LiteralValue
-#             | MapType LiteralValue
-#"""
-
-#def p_CompositeLit(p):
-#    """
-#    CompositeLit : ArrayType LiteralValue
-#                 | SliceType LiteralValue
-#    """
-#
-#def p_LiteralValue(p):
-#    """
-#    LiteralValue : LBRACE ElementList COMMA RBRACE
-#                 | LBRACE ElementList RBRACE
-#                 | LBRACE RBRACE
-#    """
-#
-#def p_ElementList(p):
-#    """
-#    ElementList : KeyedElement
-#                | ElementList COMMA KeyedElement
-#    """
-#
-#def p_KeyedElement(p):
-#    """
-#    KeyedElement : Expression COLON Expression
-#                 | Expression
-#    """
 
 def p_Statement(p):
     """
@@ -950,7 +1023,7 @@ def p_ShortVarDecl(p):
     if(len(p[1].idList) != len(p[3].expTList)):
         raise NameError("Imbalanced assignment", p.lineno(1))
     
-    for i in range(0,p[1].idList):
+    for i in range(0,len(p[1].idList)):
         if(checkUse(p[1].idList[i],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
@@ -958,12 +1031,11 @@ def p_ShortVarDecl(p):
 def p_IfStmt(p):
     """
     IfStmt : IF OpenS Expression Block CloseS 
-           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS 
            | IF OpenS Expression Block CloseS ELSE IfStmt
            | IF OpenS Expression Block CloseS ELSE OpenS Block CloseS 
-           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE OpenS Block CloseS 
-           | IF OpenS SimpleStmt SEMICOLON Expression Block CloseS ELSE IfStmt
     """
+    if(not p[3].expTList[0]==["bool"]):
+        raise NameError("The type of expression in if must be boolean", p.lineno(1))
 
 def p_SwitchStmt(p):
     """
@@ -972,41 +1044,69 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-        ExprSwitchStmt : SWITCH OpenS LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH OpenS SimpleStmt SEMICOLON LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH OpenS Expression LBRACE ExprCaseClause_curl RBRACE CloseS 
-                       | SWITCH OpenS SimpleStmt SEMICOLON Expression LBRACE ExprCaseClause_curl RBRACE CloseS
+    ExprSwitchStmt : SWITCH ExpressionName LBRACE ExprCaseClause_curl RBRACE 
     """
+
+def p_ExpressionName(p):
+    """
+    ExpressionName : Expression
+    """
+    if(len(p[1].expTList)>1):
+        raise NameError("Complex types not allowed in switch", p.lineno(1))
+    if(p[1].expTList[0][0]!="int" or p[1].expTList[0][0]!="rune" or p[1].expTList[0][0]!="bool"):
+        raise NameError("Only int,bool and runes are allowed in switch")
+    currentSwitch=p[1].expTList[0][0]
+    
 
 def p_ExprCaseClause_curl(p):
     """
     ExprCaseClause_curl : ExprCaseClause_curl ExprCaseClause
+                        | DefCaseClause
                         |
     """
 
 def p_ExprCaseClause(p):
     """
-    ExprCaseClause : ExprSwitchCase COLON StatementList
+    ExprCaseClause : OpenS ExprSwitchCase COLON StatementList CloseS
     """
 
 def p_ExprSwitchCase(p):
     """
-    ExprSwitchCase : CASE ExpressionList
-                   | DEFAULT
+    ExprSwitchCase : CASE Expression
     """
-#Removed rangeclause for unknown reasons
+    if(len(p[2].expTList)>1):
+        raise NameError("Complex types not allowed in switch", p.lineno(1))
+    if(p[2].expTList[0][0]!="int" or p[2].expTList[0][0]!="rune" or p[2].expTList[0][0]!="bool"):
+        raise NameError("Only int,bool and runes are allowed in switch")
+    if(currentSwitch!=p[2].expTList[0][0]):
+        raise NameError("type mismatch in case and switch",p.lineno(1))
+    
+def p_DefCaseClause(p):
+    """
+    DefCaseClause : OpenS DEFAULT COLON StatementList CloseS
+    """
+
 def p_ForStmt(p):
     """
     ForStmt : FOR OpenS Expression Block CloseS      
             | FOR OpenS ForClause Block CloseS 
             | FOR OpenS Block CloseS  
     """
+    if(len(p)==5 and p[3].info.get("forclause")!=None):
+        a=0
+    elif(len(p)==5):
+        if(len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool"):
+            raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
 
 def p_ForClause(p):
     """
     ForClause : SimpleStmt SEMICOLON SEMICOLON SimpleStmt
               | SimpleStmt SEMICOLON Expression SEMICOLON SimpleStmt
     """
+    p[0]=node()
+    p[0].info["forclause"]=1
+    if(len(p)==6 and (len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool")):
+        raise NameError("Only boolean value is allowed in expression in for loop",p.lineno(1))
 
 #def p_error(p):
 #    print("Syntax Error at Line No:", p.lineno, "at position", p.lexpos, p.value)
@@ -1025,38 +1125,3 @@ with open(sys.argv[1],'r') as f:
     input_str = f.read()
 
 out=parser.parse(input_str,tracking=True)
-
-#outputDot="../"+sys.argv[2][6:]
-#
-#alist=out
-#file1 = open(outputDot,"w")#write mode
-#file1.write("digraph graphname {")
-#file1.write("\n")
-#counter=0
-#def writeGraph(someList):
-#    global counter
-#    local=counter
-#    counter+=1
-#    name=someList[0]
-#    if(len(someList) > 1):
-#        for innerList in someList[1:]:
-#            if(len(innerList) >0):
-#                file1.write(str(local))
-#                file1.write ("[label=\"")
-#                file1.write (name)
-#                file1.write ("\" ] ;")
-#                file1.write(str(counter))
-#                file1.write ("[label=\"")
-#                if ((innerList[0][0])=="\""):
-#                    innerList[0]=innerList[0][1:-1]
-#                file1.write (innerList[0])
-#                file1.write ("\" ] ;")
-#                file1.write(str(local) + "->" + str(counter) + ";")
-#                file1.write("\n")
-#                writeGraph(innerList)
-#writeGraph(alist)
-#file1.write("}")
-#file1.close()
-#outputTree="../"+sys.argv[1][15:]+".ps"
-#
-#os.system("dot -Tps "+ outputDot+" -o "+outputTree)

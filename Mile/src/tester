@@ -1,15 +1,26 @@
 package main
 import "fmt"
 var a int
-func abs(ad,ag int, fj,kl float) chan{
+type cd struct{
+    ab float
+}
+type ab struct{
+    v,m int
+    c *cd
+    ab struct *ab
+}
+func abs(ad,ag int, fj,kl float) {
     ad =3
     var a string
     a="dddd"
     return 
 }
-func main() chan{
+func main() {
     var a int
-    var c float
-    var x,c1 string
-    abs(a,a,c,c)
+    var b int
+    if a<b {
+        a=56
+    } else if (a || b) || (b<a) {
+        b=98
+    }
 }
