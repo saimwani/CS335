@@ -1,8 +1,25 @@
 package main
 import "fmt"
-func fac(i int) (int) {
-    return fac(i-1)*i
+var a int
+type cd struct{
+    ab float
+}
+type ab struct{
+    v,m int
+    c *cd
+    ab struct *ab
+}
+func abs(ad,ag int, fj,kl float) {
+    ad =3
+    var a string
+    a="dddd"
+    return 
 }
 func main() {
-    var  a int= fac(9)    
+    var a int
+    var a1 ab
+    a=a1.v+a1.m
+    var c float
+    var x,c1 string
+    abs(a,a,c,c)
 }

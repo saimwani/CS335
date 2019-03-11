@@ -44,6 +44,7 @@ currentScope=0
 scopeNum=0
 currentFunc=0
 currentStruct=0
+structOff=0
 currentSwitch=0
 structSymbolList=[]
 
@@ -71,6 +72,7 @@ def openS():
     scopeTab[currentScope]=symbolTable()
     scopeTab[currentScope].assignParent(prevScope)
     scopeTab[currentScope].typeList=scopeTab[prevScope].typeList
+    scopeTab[currentScope].typeSList=scopeTab[prevScope].typeSList
     for x in scopeTab[0].table:
         if(scopeTab[0].table[x]["type"]==["func"]):
             scopeTab[currentScope].insert(x,["func"])
@@ -299,13 +301,15 @@ def p_StructDecl(p):
     StructDecl : TYPE StructName StructType 
     """
     scopeTab[currentScope].typeList.append(currentStruct)
+    scopeTab[currentScope].typeSList[currentStruct]=structOff
 
 def p_StructName(p):
     """
     StructName : ID
     """
-    global currentStruct
+    global currentStruct,structOff
     currentStruct=p[1]
+    structOff=0
     if(p[1] in scopeTab[currentScope].typeList):
         raise NameError("StructName has been already used", p.lineno(1))
     if(p[1] in scopeTab[currentScope].table):
@@ -342,8 +346,12 @@ def p_VarSpec(p):
             else:
                 if(isinstance(p[2],str)):
                     scopeTab[currentScope].insert(x,[p[2]])
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+                    offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
                 else:
                     scopeTab[currentScope].insert(x,p[2].type)
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+                    offsetList[currentScope]+=p[2].info["typesize"]
     
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].expTList)):
@@ -356,9 +364,15 @@ def p_VarSpec(p):
         if(len(p[1].idList) != len(p[3].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
         for i in range(0,len(p[1].idList)):
+            if(len(p[3].expTList[i])>1):
+                raise NameError("Auto assignment of complex expressions not allowed",p.lineno(1))
+            if(not p[3].expTList[i][0] in basicTypes):
+                raise NameError("Auto assignment of only basic types allowed",p.lineno(1))
             if(checkUse(p[1].idList[i],'redeclaration')==True):
                 raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
+            scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+            offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
 
 def p_FunctionDecl(p):
     """
@@ -406,8 +420,8 @@ def p_ArrayType(p):
     ArrayType : LBRACK INT RBRACK Type
               | LBRACK INT RBRACK ID
     """
-    if(isinstance(p[4],str) and not p[4] in basicTypes):
-        raise NameError("Only basic types of array are allowed "+p[4], p.lineno(1))
+    if(isinstance(p[4],str) and not p[4] in scopeTab[currentScope].typeList):
+        raise NameError("This type hasn't been declared yet "+p[4], p.lineno(1))
     temp=int(p[2])
     if(isinstance(p[4],str)):
         p[0]=node()
@@ -456,43 +470,58 @@ def p_FieldDecl(p):
               | ID STRUCT MUL ID
               | ID COMMA IdentifierList STRUCT MUL ID
     """
+    global structOff 
     if(len(p)==3):
         if(isinstance(p[2],str)):
             if(p[1] in structSymbolList):
                 raise NameError("This identifier is already declared in this list", p.lineno(1))
             structSymbolList.append(p[1])
             scopeTab[currentScope].updateList(currentStruct,p[1],[p[2]])
+            scopeTab[currentScope].updateList(currentStruct,"offset "+p[1],structOff)
+            structOff+=scopeTab[currentScope].typeSList[p[2]]
         else:
             if(p[1] in structSymbolList):
                 raise NameError("This identifier is already declared in this list", p.lineno(1))
             structSymbolList.append(p[1])
             scopeTab[currentScope].updateList(currentStruct,p[1],p[2].type)
+            scopeTab[currentScope].updateList(currentStruct,"offset "+p[1],structOff)
+            structOff+=p[2].info["typesize"]
     elif(len(p)==5 and not isinstance(p[3],str)):
         if(isinstance(p[4],str)):
             if(p[1] in structSymbolList):
                 raise NameError("This identifier is already declared in this list", p.lineno(1))
             structSymbolList.append(p[1])
             scopeTab[currentScope].updateList(currentStruct,p[1],[p[4]])
+            scopeTab[currentScope].updateList(currentStruct,"offset "+p[1],structOff)
+            structOff+=scopeTab[currentScope].typeSList[p[4]]
             for x in p[3].idList:
                 if(x in structSymbolList):
                     raise NameError("This identifier is already declared in this list", p.lineno(1))
                 structSymbolList.append(x)
                 scopeTab[currentScope].updateList(currentStruct,x,[p[4]])
+                scopeTab[currentScope].updateList(currentStruct,"offset "+x,structOff)
+                structOff+=scopeTab[currentScope].typeSList[p[4]]
         else:
             if(p[1] in structSymbolList):
                 raise NameError("This identifier is already declared in this list", p.lineno(1))
             structSymbolList.append(p[1])
             scopeTab[currentScope].updateList(currentStruct,p[1],p[4].type)
+            scopeTab[currentScope].updateList(currentStruct,"offset "+p[1],structOff)
+            structOff+=p[4].info["typesize"]
             for x in p[3].idList:
                 if(x in structSymbolList):
                     raise NameError("This identifier is already declared in this list", p.lineno(1))
                 structSymbolList.append(x)
                 scopeTab[currentScope].updateList(currentStruct,x,p[4].type)
+                scopeTab[currentScope].updateList(currentStruct,"offset "+x,structOff)
+                structOff+=p[4].info["typesize"]
     elif(len(p)==5):
         if(p[4]!=currentStruct):
             raise NameError("The identifier should be the current struct", p.lineno(1))
         structSymbolList.append(p[1])
         scopeTab[currentScope].updateList(currentStruct, p[1], ["pointer",currentStruct])
+        scopeTab[currentScope].updateList(currentStruct,"offset "+p[1],structOff)
+        structOff+=4
     else:
         if(p[6]!=currentStruct):
             raise NameError("The identifier should be the current struct", p.lineno(1))
@@ -503,6 +532,8 @@ def p_FieldDecl(p):
                 raise NameError("This identifier is already declared in this list", p.lineno(1))
             structSymbolList.append(x)
             scopeTab[currentScope].updateList(currentStruct,x,["pointer",currentStruct])
+            scopeTab[currentScope].updateList(currentStruct,"offset "+x,structOff)
+            structOff+=4
 
 def p_PointerType(p):
     """
@@ -785,7 +816,7 @@ def p_PrimaryExpr(p):
     elif(len(p)==4):
         p[0]=p[2]
     elif(p[2].info.get("index")!=None):
-        if(p[1].expTList[0][0]!="arr"):
+        if(p[1].expTList[0][0][0:3]=="arr"):
             raise NameError("The type of this expression is not an array ", p.lineno(1))
         p[0]=p[1]
         p[0].expTList[0]=p[0].expTList[0][1:]
@@ -1017,9 +1048,15 @@ def p_ShortVarDecl(p):
         raise NameError("Imbalanced assignment", p.lineno(1))
     
     for i in range(0,len(p[1].idList)):
+        if(len(p[3].expTList[i])>1):
+            raise NameError("Auto assignment of complex expressions not allowed",p.lineno(1))
+        if(not p[3].expTList[i][0] in basicTypes):
+            raise NameError("Auto assignment of only basic types allowed",p.lineno(1))
         if(checkUse(p[1].idList[i],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
+        scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+        offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
 
 def p_IfStmt(p):
     """
