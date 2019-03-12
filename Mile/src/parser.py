@@ -46,6 +46,7 @@ openF=0
 openW=0
 currentSwitch=0
 tempCount=1
+addCount=1
 structSymbolList=[]
 
 def checkUse(ident,checkWhat):
@@ -61,12 +62,12 @@ def checkUse(ident,checkWhat):
         return False
 
 def openS():
-    global currentScope 
-    global scopeList 
-    global scopeNum 
+    global currentScope
+    global scopeList
+    global scopeNum
     prevScope=currentScope
     scopeNum+=1
-    currentScope=scopeNum 
+    currentScope=scopeNum
     scopeList.append(currentScope)
     offsetList.append(0)
     scopeTab[currentScope]=symbolTable()
@@ -82,7 +83,7 @@ def openS():
 
 def closeS():
     global currentScope
-    global scopeList 
+    global scopeList
     currentScope=scopeList[-2]
     scopeList=scopeList[0:-1]
 
@@ -115,7 +116,7 @@ def checkOprn(exp1,binop,exp2):
             return [exp1]
         else:
             return None
-    
+
 def checkUnOprn(unop,exp1):
     unop=unop[0]
     if(unop=="+" or unop=="-"):
@@ -152,6 +153,12 @@ def newTemp():
     global tempCount
     newt="t_"+str(tempCount)
     tempCount+=1
+    return newt
+
+def newAdd():
+    global addCount
+    newt="a_"+str(addCount)
+    addCount+=1
     return newt
 
 def p_SourceFile(p):
@@ -277,7 +284,7 @@ def p_ConstSpec(p):
     p[0]code+=p[4].code
     if(isinstance(p[2],str) and not p[2] in basicTypes):
         raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
-    
+
     for x in p[1].idList:
         if(checkUse(x,'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
@@ -287,10 +294,10 @@ def p_ConstSpec(p):
                 scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
                 offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
             scopeTab[currentScope].updateList(x,'constant',True)
-    
+
     if(len(p[1].idList) != len(p[4].expTList)):
         raise NameError("Imbalanced assignment", p.lineno(1))
-    
+
     for i in range(0,len(p[1].idList)):
         if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
             raise ("Mismatch of type for "+p[1].idList[i])
@@ -338,7 +345,7 @@ def p_ExpressionList(p):
 
 def p_StructDecl(p):
     """
-    StructDecl : TYPE StructName StructType 
+    StructDecl : TYPE StructName StructType
     """
     p[0]=node()
     scopeTab[currentScope].typeList.append(currentStruct)
@@ -356,7 +363,7 @@ def p_StructName(p):
         raise NameError("StructName has been already used", p.lineno(1))
     if(p[1] in scopeTab[currentScope].table):
         raise NameError("This name has been already assigned", p.lineno(1))
-    scopeTab[currentScope].insert(p[1],["struct"]) 
+    scopeTab[currentScope].insert(p[1],["struct"])
 
 def p_VarDecl(p):
     """
@@ -384,9 +391,15 @@ def p_VarSpec(p):
             | IdentifierList ID
             | IdentifierList Type
     """
+    if (len(p)==4 or len(p)==5):
+        for i in range(0,len(p[4].expTList)):
+            if(!(expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
+                raise ("Invalid Assignment")
+        raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
+
     if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
-    
+
     if(len(p)==5 or len(p)==3):
         for x in p[1].idList:
             if(checkUse(x,'redeclaration')==True):
@@ -400,7 +413,7 @@ def p_VarSpec(p):
                     scopeTab[currentScope].insert(x,p[2].type)
                     scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
                     offsetList[currentScope]+=p[2].info["typesize"]
-    
+
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
@@ -411,7 +424,7 @@ def p_VarSpec(p):
         p[0].code=p[1].code+p[4].code
         for i in range(0,len(p[1].idList)):
             p[0].code.append([p[1].idList[i],"=",p[4].expList[i]])
-    
+
     if(len(p)==4):
         if(len(p[1].idList) != len(p[3].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
@@ -439,14 +452,14 @@ def p_FunctionDecl(p):
 
 def p_FuncName(p):
     """
-    FuncName : ID 
+    FuncName : ID
     """
     p[0]=node()
-    global currentFunc 
+    global currentFunc
     if(checkUse(p[1],'redeclaration')==True):
         raise NameError('The name of function has been used elsewhere :'+p[1], p.lineno(1))
     scopeTab[0].insert(p[1],["func"])
-    currentFunc=p[1] 
+    currentFunc=p[1]
 
 def p_Type(p):
     """
@@ -533,7 +546,7 @@ def p_FieldDecl(p):
               | ID COMMA IdentifierList STRUCT MUL ID
     """
     p[0]=node()
-    global structOff 
+    global structOff
     if(len(p)==3):
         if(isinstance(p[2],str)):
             if(p[1] in structSymbolList):
@@ -694,7 +707,7 @@ def p_ParameterDecl(p):
     """
     if(isinstance(p[2],str) and not p[2] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
-   
+
     p[0]=node()
     if(not isinstance(p[1],str)):
         for x in p[1].idList:
@@ -734,7 +747,7 @@ def p_ParaIdList(p):
 
 def p_Block(p):
     """
-    Block : LBRACE StatementList RBRACE 
+    Block : LBRACE StatementList RBRACE
     """
     p[0]=p[2]
 
@@ -769,7 +782,7 @@ def p_Expression(p):
         p[0].info["memory"]=0
         var1=newTemp()
         p[0].expList=[var1]
-        p[0].code=p[1].code+p[3].code 
+        p[0].code=p[1].code+p[3].code
         p[0].code.append([var1,"=",p[1].expList[0],p[2].expTList[0][0]+p[3].expTList[0][0],p[3].expList[0]])
 
 def p_UnaryExpr(p):
@@ -786,14 +799,19 @@ def p_UnaryExpr(p):
         if(checkUnOprn(p[1].expTList[0], p[2].expTList[0])==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0], p.lineno(1))
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
+        ## WHAT IS THIS MAGIC!!!
         if(p[1].expTList[0][0]=="*"):
             p[0].info["memory"]=1
         else:
             p[0].info["memory"]=0
         var1=newTemp()
         p[0].expList=[var1]
-        p[0].code=p[2].code 
-        p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
+        p[0].code=p[2].code
+        #p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])  # MAGIC
+        p[0].code.append([var1,"=", p[1].expTList[0][0], p[2].expList[0]])
+
+
+
 
 def p_BinaryOp(p):
     """
@@ -890,6 +908,13 @@ def p_PrimaryExpr(p):
             p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
             p[0].info["memory"]=1
             p[0].code=p[1].code
+            add1=newAdd()
+            off=scopeTab[currentScope].table[p[1].expTList[0][0]["offset "+p[3]]]
+            p[0].code.append([add1, "=", p[1].info["address"], '+', off])
+            p[0].info["address"]=add1
+            p[0].info["deref"]=1
+
+
         else:
             raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
 #    elif(isinstance(p[1],str) and p[1]!='('):
@@ -971,7 +996,7 @@ def p_Literal(p):
 
 def p_BasicLit(p):
     """
-    BasicLit : IntLit 
+    BasicLit : IntLit
              | FloatLit
              | RuneLit
              | StringLit
@@ -1065,11 +1090,20 @@ def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
+
+    for i in range(0,len(p[3].expTList)):
+        if(p[2].info["op"]=="="):
+            if(!(expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
+                raise ("Invalid Assignment")
+        else:
+            if(expTList[i][0] not in basicTypes):
+                raise ("Invalid Assignment")
+    raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
     if(p[1].info["memory"]==0):
         raise NameError("Assignment not allowed for this expression list", p.lineno(1))
     if(len(p[1].expTList) != len(p[3].expTList)):
         raise NameError("Imbalanced assignment", p.lineno(1))
- 
+
     for i in range(0,len(p[1].expTList)):
         if(p[1].expTList[i] != p[3].expTList[i]):
             raise NameError("Mismatch of type for ",p[1].expTList[i], p.lineno(1))
@@ -1091,6 +1125,7 @@ def p_AssignOp(p):
     """
     p[0]=node()
     p[0].expTList.append(p[1])
+    p[0].info["op"]=p[1]
 
 def p_LabelledStmt(p):
     """
@@ -1139,7 +1174,7 @@ def p_ShortVarDecl(p):
     """
     if(len(p[1].idList) != len(p[3].expTList)):
         raise NameError("Imbalanced assignment", p.lineno(1))
-    
+
     for i in range(0,len(p[1].idList)):
         if(len(p[3].expTList[i])>1):
             raise NameError("Auto assignment of complex expressions not allowed",p.lineno(1))
@@ -1153,9 +1188,9 @@ def p_ShortVarDecl(p):
 
 def p_IfStmt(p):
     """
-    IfStmt : IF OpenS Expression Block CloseS 
+    IfStmt : IF OpenS Expression Block CloseS
            | IF OpenS Expression Block CloseS ELSE IfStmt
-           | IF OpenS Expression Block CloseS ELSE OpenS Block CloseS 
+           | IF OpenS Expression Block CloseS ELSE OpenS Block CloseS
     """
     if(not p[3].expTList[0]==["bool"]):
         raise NameError("The type of expression in if must be boolean", p.lineno(1))
@@ -1167,7 +1202,7 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-    ExprSwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE 
+    ExprSwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
     """
 
 def p_ExpressionName(p):
@@ -1179,7 +1214,7 @@ def p_ExpressionName(p):
     if(p[1].expTList[0][0]!="int" or p[1].expTList[0][0]!="rune" or p[1].expTList[0][0]!="bool"):
         raise NameError("Only int,bool and runes are allowed in switch")
     currentSwitch=p[1].expTList[0][0]
-    
+
 
 def p_ExprCaseClause_curl(p):
     """
@@ -1203,7 +1238,7 @@ def p_ExprSwitchCase(p):
         raise NameError("Only int,bool and runes are allowed in switch")
     if(currentSwitch!=p[2].expTList[0][0]):
         raise NameError("type mismatch in case and switch",p.lineno(1))
-    
+
 def p_DefCaseClause(p):
     """
     DefCaseClause : OpenS DEFAULT COLON StatementList CloseS
@@ -1211,9 +1246,9 @@ def p_DefCaseClause(p):
 
 def p_ForStmt(p):
     """
-    ForStmt : FOR OpenS OpenF Expression Block CloseF CloseS      
-            | FOR OpenS OpenF ForClause Block CloseF CloseS 
-            | FOR OpenS OpenF Block CloseF CloseS  
+    ForStmt : FOR OpenS OpenF Expression Block CloseF CloseS
+            | FOR OpenS OpenF ForClause Block CloseF CloseS
+            | FOR OpenS OpenF Block CloseF CloseS
     """
     if(len(p)==5 and p[3].info.get("forclause")!=None):
         a=0
@@ -1223,28 +1258,28 @@ def p_ForStmt(p):
 
 def p_OpenF(p):
     """
-    OpenF : 
+    OpenF :
     """
     global openF
     openF+=1
 
 def p_CloseF(p):
     """
-    CloseF : 
+    CloseF :
     """
     global openF
     openF-=1
 
 def p_OpenW(p):
     """
-    OpenW : 
+    OpenW :
     """
     global openW
     openW+=1
 
 def p_CloseW(p):
     """
-    CloseW : 
+    CloseW :
     """
     global openW
     openW-=1
