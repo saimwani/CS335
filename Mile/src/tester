@@ -6,7 +6,7 @@ type cd struct{
 }
 type ab struct{
     v,m int
-    c *cd
+    c cd
     ab struct *ab
 }
 func abs(ad,ag int, fj,kl float) {
@@ -16,10 +16,10 @@ func abs(ad,ag int, fj,kl float) {
     return 
 }
 func main() {
-    var a int
+    var a float
     var a1 ab
-    a=a1.v+a1.m
+    a=a1.c.ab+5.0
     var c float
     var x,c1 string
-    abs(a,a,c,c)
+    abs(a1.m,a1.v,c,c)
 }

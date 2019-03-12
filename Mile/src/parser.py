@@ -1,7 +1,4 @@
 #TODO constant checking in assignment operations
-#
-#
-#
 import ply.yacc as yacc
 import os
 import pprint
@@ -45,6 +42,8 @@ scopeNum=0
 currentFunc=0
 currentStruct=0
 structOff=0
+openF=0
+openW=0
 currentSwitch=0
 structSymbolList=[]
 
@@ -786,7 +785,7 @@ def p_PrimaryExpr(p):
     """
     PrimaryExpr : Literal
                 | ID
-                | ID DOT ID
+                | PrimaryExpr DOT ID
                 | LPAREN Expression RPAREN
                 | PrimaryExpr Index
                 | PrimaryExpr Slice
@@ -803,9 +802,9 @@ def p_PrimaryExpr(p):
         p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
-    elif(isinstance(p[1],str) and p[1]!='('):
-        temp=scopeTab[currentScope].table[p[1]]["type"][0]
-        if(p[1] in scopeTab[currentScope].table and scopeTab[currentScope].table[temp]["type"]==["struct"]):
+    elif(len(p)==4 and p[2]=='.'):
+        temp=p[1].expTList[0][0]
+        if(scopeTab[currentScope].table.get(temp)!=None and scopeTab[currentScope].table[temp]["type"]==["struct"]):
             if(scopeTab[currentScope].table[temp].get(p[3])==None):
                 raise NameError("No such attribute of given struct",p.lineno(1))
             p[0]=node()
@@ -813,6 +812,16 @@ def p_PrimaryExpr(p):
             p[0].info["memory"]=1
         else:
             raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
+#    elif(isinstance(p[1],str) and p[1]!='('):
+#        temp=scopeTab[currentScope].table[p[1]]["type"][0]
+#        if(p[1] in scopeTab[currentScope].table and scopeTab[currentScope].table[temp]["type"]==["struct"]):
+#            if(scopeTab[currentScope].table[temp].get(p[3])==None):
+#                raise NameError("No such attribute of given struct",p.lineno(1))
+#            p[0]=node()
+#            p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
+#            p[0].info["memory"]=1
+#        else:
+#            raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
     elif(len(p)==4):
         p[0]=p[2]
     elif(p[2].info.get("index")!=None):
@@ -1023,12 +1032,16 @@ def p_BreakStmt(p):
     BreakStmt : BREAK ID
               | BREAK
     """
+    if(openF==0 and openW==0):
+        raise NameError("Break can be only done inside loops and switches",p.lineno(1))
 
 def p_ContinueStmt(p):
     """
     ContinueStmt : CONTINUE ID
                  | CONTINUE
     """
+    if(openF==0):
+        raise NameError("Continue can be only done inside loops",p.lineno(1))
 
 def p_GotoStmt(p):
     """
@@ -1074,7 +1087,7 @@ def p_SwitchStmt(p):
 
 def p_ExprSwitchStmt(p):
     """
-    ExprSwitchStmt : SWITCH ExpressionName LBRACE ExprCaseClause_curl RBRACE 
+    ExprSwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE 
     """
 
 def p_ExpressionName(p):
@@ -1118,15 +1131,43 @@ def p_DefCaseClause(p):
 
 def p_ForStmt(p):
     """
-    ForStmt : FOR OpenS Expression Block CloseS      
-            | FOR OpenS ForClause Block CloseS 
-            | FOR OpenS Block CloseS  
+    ForStmt : FOR OpenS OpenF Expression Block CloseF CloseS      
+            | FOR OpenS OpenF ForClause Block CloseF CloseS 
+            | FOR OpenS OpenF Block CloseF CloseS  
     """
     if(len(p)==5 and p[3].info.get("forclause")!=None):
         a=0
     elif(len(p)==5):
         if(len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool"):
             raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
+
+def p_OpenF(p):
+    """
+    OpenF : 
+    """
+    global openF
+    openF+=1
+
+def p_CloseF(p):
+    """
+    CloseF : 
+    """
+    global openF
+    openF-=1
+
+def p_OpenW(p):
+    """
+    OpenW : 
+    """
+    global openW
+    openW+=1
+
+def p_CloseW(p):
+    """
+    CloseW : 
+    """
+    global openW
+    openW-=1
 
 def p_ForClause(p):
     """
