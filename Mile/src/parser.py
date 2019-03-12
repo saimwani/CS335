@@ -923,7 +923,11 @@ def p_PrimaryExpr(p):
 
         if(scopeTab[currentScope].table.get(temp1[0])!=None):
             print(scopeTab[currentScope].table.get(temp1[0]))
-
+            if(scopeTab[currentScope].table[temp1[0]]["type"]==["struct"]):
+                var1=newTemp()
+                p[0].code.append([var1,"=", "&"+p[1]])
+                p[0].info["deref"]=1
+                p[0].expList.append(var1)
 
     elif(len(p)==4 and p[2]=='.'):
         temp=p[1].expTList[0][0]
