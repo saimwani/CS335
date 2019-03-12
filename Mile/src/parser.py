@@ -45,6 +45,7 @@ structOff=0
 openF=0
 openW=0
 currentSwitch=0
+tempCount=1
 structSymbolList=[]
 
 def checkUse(ident,checkWhat):
@@ -146,11 +147,21 @@ def checkUnOprn(unop,exp1):
         exp2=["pointer"]
         exp1= exp2+exp1
         return exp1
-    
+
+def newTemp():
+    global tempCount
+    newt="t_"+str(tempCount)
+    tempCount+=1
+    return newt
+
 def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
     """
+    p[0]=node()
+    p[0].code+=p[1].code()
+    p[0].code+=p[3].code()
+    p[0].code+=p[4].code()
     print("-----------------------------------------------------------------------")
     for x in range(0,scopeNum+1):
         print("Table number",x)
@@ -177,48 +188,59 @@ def p_TopLevelDecl_curl(p):
     TopLevelDecl_curl : TopLevelDecl_curl TopLevelDecl SEMICOLON
                     |
     """
+    p[0]=node()
+    p[0].code+=p[1].code
+    p[0].code+=p[2].code
 
 def p_ImportDecl_curl(p):
     """
     ImportDecl_curl : ImportDecl_curl ImportDecl SEMICOLON
                   |
     """
+    p[0]=node()
+    p[0].code+=p[1].code
+    p[0].code+=p[2].code
 
 def p_PackageClause(p):
     """
     PackageClause : PACKAGE ID
     """
+    p[0]=node()
 
 def p_ImportDecl(p):
     """
     ImportDecl : IMPORT ImportSpec
                | IMPORT LPAREN ImportSpec_curl RPAREN
     """
+    p[0]=node()
 
 def p_ImportSpec_curl(p):
     """
     ImportSpec_curl : ImportSpec_curl ImportSpec SEMICOLON
                     |
     """
+    p[0]=node()
 
 def p_ImportSpec(p):
     """
-    ImportSpec : DOT ImportPath
-               | ID ImportPath
+    ImportSpec : ID ImportPath
                | ImportPath
     """
+    p[0]=node()
 
 
 def p_ImportPath(p):
     """
     ImportPath : STRING
     """
+    p[0]=node()
 
 def p_TopLevelDecl(p):
     """
     TopLevelDecl : Declaration
                  | FunctionDecl
     """
+    p[0]=p[1]
 
 def p_Declaration(p):
     """
@@ -226,23 +248,33 @@ def p_Declaration(p):
                 | StructDecl
                 | VarDecl
     """
+    p[0]=p[1]
 
 def p_ConstDecl(p):
     """
     ConstDecl : CONST ConstSpec
               | CONST LPAREN ConstSpec_curl RPAREN
     """
+    if(len(p)==3):
+        p[0]=p[2]
+    else:
+        p[0]=p[3]
 
 def p_ConstSpec_curl(p):
     """
     ConstSpec_curl : ConstSpec_curl ConstSpec SEMICOLON
                    |
     """
+    p[0]=p[1]
+    p[0].code+=p[2].code
 
 def p_ConstSpec(p):
     """
     ConstSpec : IdentifierList ID ASSIGN ExpressionList
     """
+    p[0]=node()
+    p[0]code+=p[1].code
+    p[0]code+=p[4].code
     if(isinstance(p[2],str) and not p[2] in basicTypes):
         raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
     
@@ -262,6 +294,10 @@ def p_ConstSpec(p):
     for i in range(0,len(p[1].idList)):
         if(p[4].expTList[i] != scopeTab[currentScope][p[1].idList[i]]["type"]):
             raise ("Mismatch of type for "+p[1].idList[i])
+
+    for i in range(0,len(p[1].idList)):
+        p[0].code.append([p[1].idList[i],"=",p[4].expList[i])
+
 
 def p_IdentifierList(p):
     """
@@ -283,6 +319,8 @@ def p_ExpressionList(p):
     p[0]=node()
     if(len(p)==2):
         p[0].expTList+=p[1].expTList
+        p[0].expList+=p[1].expList
+        p[0].code=p[1].code
         if(p[1].info.get("memory")):
             p[0].info["memory"]=1
         else:
@@ -290,6 +328,9 @@ def p_ExpressionList(p):
     else:
         p[0].expTList+=p[1].expTList
         p[0].expTList+=p[3].expTList
+        p[0].expList+=p[1].expList
+        p[0].expList+=p[3].expList
+        p[0].code=p[1].code+p[3].code
         if(p[1].info["memory"]==1 and p[3].info["memory"]==1):
             p[0].info["memory"]=1
         else:
@@ -299,6 +340,7 @@ def p_StructDecl(p):
     """
     StructDecl : TYPE StructName StructType 
     """
+    p[0]=node()
     scopeTab[currentScope].typeList.append(currentStruct)
     scopeTab[currentScope].typeSList[currentStruct]=structOff
 
@@ -306,6 +348,7 @@ def p_StructName(p):
     """
     StructName : ID
     """
+    p[0]=node()
     global currentStruct,structOff
     currentStruct=p[1]
     structOff=0
@@ -320,12 +363,18 @@ def p_VarDecl(p):
     VarDecl : VAR VarSpec
             | VAR LPAREN VarSpec_curl RPAREN
     """
+    if(len(p)==3):
+        p[0]=p[2]
+    else:
+        p[0]=p[3]
 
 def p_VarSpec_curl(p):
     """
     VarSpec_curl : VarSpec_curl VarSpec SEMICOLON
                  |
     """
+    p[0]=p[1]
+    p[0].code+=p[2].code
 
 def p_VarSpec(p):
     """
@@ -358,6 +407,10 @@ def p_VarSpec(p):
         for i in range(0,len(p[1].idList)):
             if(p[4].expTList[i] != scopeTab[currentScope].table[p[1].idList[i]]["type"]):
                 raise ("Mismatch of type for "+p[1].idList[i])
+        p[0]=node()
+        p[0].code=p[1].code+p[4].code
+        for i in range(0,len(p[1].idList)):
+            p[0].code.append([p[1].idList[i],"=",p[4].expList[i]])
     
     if(len(p)==4):
         if(len(p[1].idList) != len(p[3].expTList)):
@@ -372,16 +425,23 @@ def p_VarSpec(p):
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
             scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
             offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+            p[0]=node()
+            p[0].code=p[1].code+p[3].code
+            for i in range(0,len(p[1].idList)):
+                p[0].code.append([p[1].idList[i],"=",p[3].expList[i]])
 
 def p_FunctionDecl(p):
     """
     FunctionDecl : FUNC FuncName OpenS Signature Block CloseS
     """
+    p[0]=p[4]
+    p[0].code+=p[5].code
 
 def p_FuncName(p):
     """
     FuncName : ID 
     """
+    p[0]=node()
     global currentFunc 
     if(checkUse(p[1],'redeclaration')==True):
         raise NameError('The name of function has been used elsewhere :'+p[1], p.lineno(1))
@@ -394,6 +454,7 @@ def p_Type(p):
          | LPAREN ID RPAREN
          | TypeLit
     """
+    p[0]=node()
     if(len(p)==2):
         p[0]=p[1]
     else:
@@ -453,12 +514,14 @@ def p_StructType(p):
     """
     StructType : STRUCT OpenStructS LBRACE FieldDecl_curl RBRACE CloseStructS
     """
+    p[0]=node()
 
 def p_FieldDecl_curl(p):
     """
     FieldDecl_curl : FieldDecl_curl FieldDecl SEMICOLON
                    |
     """
+    p[0]=node()
 
 def p_FieldDecl(p):
     """
@@ -469,6 +532,7 @@ def p_FieldDecl(p):
               | ID STRUCT MUL ID
               | ID COMMA IdentifierList STRUCT MUL ID
     """
+    p[0]=node()
     global structOff 
     if(len(p)==3):
         if(isinstance(p[2],str)):
@@ -556,6 +620,7 @@ def p_Signature(p):
     """
     Signature : Parameters Result
     """
+    p[0]=node()
 
 #introduced CHAN
 def p_Result(p):
@@ -563,6 +628,7 @@ def p_Result(p):
     Result : LPAREN TypeList RPAREN
            |
     """
+    p[0]=node()
     if(len(p)==1):
         scopeTab[0].updateList(currentFunc,"returns",[["void"]])
     else:
@@ -599,6 +665,7 @@ def p_Parameters(p):
                | LPAREN ParameterList RPAREN
                | LPAREN ParameterList COMMA RPAREN
     """
+    p[0]=node()
     if(len(p)==3):
         scopeTab[0].updateList(currentFunc,"takes",[["void"]])
     else:
@@ -669,17 +736,21 @@ def p_Block(p):
     """
     Block : LBRACE StatementList RBRACE 
     """
+    p[0]=p[2]
 
 def p_StatementList(p):
     """
     StatementList : Statement_curl
     """
+    p[0]=p[1]
 
 def p_Statement_curl(p):
     """
     Statement_curl : Statement_curl Statement SEMICOLON
                    |
     """
+    p[0]=p[1]
+    p[0].code+=p[2].code
 
 def p_Expression(p):
     """
@@ -690,13 +761,16 @@ def p_Expression(p):
         p[0]=p[1]
     else:
         p[0]=node()
-        #p[0].expList.append(p[1].expList[0]+p[2].expList[0]+p[3].expList[0])
         if(len(p[1].expTList)>1 or len(p[3].expTList)>1):
             raise NameError("Can't apply binary operators to multiple values", p.lineno(1))
         if(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] )==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0],p.lineno(1))
         p[0].expTList.append(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] ))
         p[0].info["memory"]=0
+        var1=newTemp()
+        p[0].expList=[var1]
+        p[0].code=p[1].code+p[3].code 
+        p[0].code.append([var1,"=",p[1].expList[0],p[2].expTList[0][0]+p[3].expTList[0][0],p[3].expList[0]])
 
 def p_UnaryExpr(p):
     """
@@ -707,7 +781,6 @@ def p_UnaryExpr(p):
         p[0]=p[1]
     else:
         p[0]=node()
-        #p[0].expList.append(p[1].expList[0]+p[2].expList[0])
         if(len(p[1].expTList)>1):
             raise NameError("Can't apply unary operators to multiple values", p.lineno(1))
         if(checkUnOprn(p[1].expTList[0], p[2].expTList[0])==None):
@@ -717,6 +790,10 @@ def p_UnaryExpr(p):
             p[0].info["memory"]=1
         else:
             p[0].info["memory"]=0
+        var1=newTemp()
+        p[0].expList=[var1]
+        p[0].code=p[2].code 
+        p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
 
 def p_BinaryOp(p):
     """
@@ -795,6 +872,7 @@ def p_PrimaryExpr(p):
     if(len(p)==2 and not isinstance(p[1],str)):
         p[0]=p[1]
         p[0].info["memory"]=0
+        p[0].expList=[p[1]]
     elif(len(p)==2):
         if(checkUse(p[1],"anywhere")==False):
             raise NameError("Undeclared identifier "+p[1], p.lineno(1))
@@ -802,6 +880,7 @@ def p_PrimaryExpr(p):
         p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
+        p[0].expList=[p[1]]
     elif(len(p)==4 and p[2]=='.'):
         temp=p[1].expTList[0][0]
         if(scopeTab[currentScope].table.get(temp)!=None and scopeTab[currentScope].table[temp]["type"]==["struct"]):
@@ -810,6 +889,7 @@ def p_PrimaryExpr(p):
             p[0]=node()
             p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
             p[0].info["memory"]=1
+            p[0].code=p[1].code
         else:
             raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
 #    elif(isinstance(p[1],str) and p[1]!='('):
