@@ -166,14 +166,17 @@ def p_SourceFile(p):
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
     """
     p[0]=node()
-    p[0].code+=p[1].code()
-    p[0].code+=p[3].code()
-    p[0].code+=p[4].code()
+    p[0].code+=p[1].code
+    p[0].code+=p[3].code
+    p[0].code+=p[4].code
     print("-----------------------------------------------------------------------")
     for x in range(0,scopeNum+1):
         print("Table number",x)
         pprint.pprint(scopeTab[x].table)
         print("-----------------------------------------------------------------------")
+    print("#############################################################################")
+    for i in range(0,len(p[0].code)):
+        print(p[0].code[i])
 
 def p_OpenS(p):
     "OpenS : "
@@ -193,7 +196,7 @@ def p_CloseStructS(p):
 def p_TopLevelDecl_curl(p):
     """
     TopLevelDecl_curl : TopLevelDecl_curl TopLevelDecl SEMICOLON
-                    |
+                      |
     """
     p[0]=node()
     if(len(p)>1):
@@ -203,7 +206,7 @@ def p_TopLevelDecl_curl(p):
 def p_ImportDecl_curl(p):
     """
     ImportDecl_curl : ImportDecl_curl ImportDecl SEMICOLON
-                  |
+                    |
     """
     p[0]=node()
     if(len(p)>1):
@@ -306,7 +309,11 @@ def p_ConstSpec(p):
             raise ("Mismatch of type for "+p[1].idList[i])
 
     for i in range(0,len(p[1].idList)):
-        p[0].code.append([p[1].idList[i],"=",p[4].expList[i]])
+        temp=[p[1].idList[i],"="]
+        if(p[4].info["dereflist"][i]==1):
+            temp.append("*")
+        temp.append(p[4].expList[i])
+        p[0].code.append(temp)
 
 
 def p_IdentifierList(p):
@@ -329,8 +336,14 @@ def p_ExpressionList(p):
     p[0]=node()
     if(len(p)==2):
         p[0].expTList+=p[1].expTList
-        p[0].expList+=p[1].expList
         p[0].code=p[1].code
+        p[0].info["dereflist"]=[]
+        if(p[1].info.get("deref")==None):
+            p[0].expList+=p[1].expList
+            p[0].info["dereflist"]=[0]
+        else:
+            p[0].expList+=p[1].expList
+            p[0].info["dereflist"]=[1]
         if(p[1].info.get("memory")):
             p[0].info["memory"]=1
         else:
@@ -339,7 +352,13 @@ def p_ExpressionList(p):
         p[0].expTList+=p[1].expTList
         p[0].expTList+=p[3].expTList
         p[0].expList+=p[1].expList
-        p[0].expList+=p[3].expList
+        p[0].info["dereflist"]=p[1].info["dereflist"]
+        if(p[3].info.get("deref")==None):
+            p[0].expList+=p[3].expList
+            p[0].info["dereflist"].append(0)
+        else:
+            p[0].expList+=p[3].expList
+            p[0].info["dereflist"].append(1)
         p[0].code=p[1].code+p[3].code
         if(p[1].info["memory"]==1 and p[3].info["memory"]==1):
             p[0].info["memory"]=1
@@ -396,11 +415,10 @@ def p_VarSpec(p):
             | IdentifierList Type
     """
     p[0]=node()
-    if (len(p)==4 or len(p)==5):
+    if (len(p)==5):
         for i in range(0,len(p[4].expTList)):
-            if(not (expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
+            if(not (p[4].expTList[i][0] in basicTypes or p[4].expTList[i][0]=="pointer")):
                 raise NameError ("Invalid Assignment")
-        raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
 
     if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
@@ -428,7 +446,11 @@ def p_VarSpec(p):
         p[0]=node()
         p[0].code=p[1].code+p[4].code
         for i in range(0,len(p[1].idList)):
-            p[0].code.append([p[1].idList[i],"=",p[4].expList[i]])
+            temp=[p[1].idList[i],"="]
+            if(p[4].info["dereflist"][i]==1):
+                temp.append("*")
+            temp.append(p[4].expList[i])
+            p[0].code.append(temp)
 
     if(len(p)==4):
         if(len(p[1].idList) != len(p[3].expTList)):
@@ -446,7 +468,11 @@ def p_VarSpec(p):
             p[0]=node()
             p[0].code=p[1].code+p[3].code
             for i in range(0,len(p[1].idList)):
-                p[0].code.append([p[1].idList[i],"=",p[3].expList[i]])
+                temp=[p[1].idList[i],"="]
+                if(p[3].info["dereflist"][i]==1):
+                    temp.append("*")
+                temp.append(p[3].expList[i])
+                p[0].code.append(temp)
 
 def p_FunctionDecl(p):
     """
@@ -769,7 +795,7 @@ def p_Statement_curl(p):
     """
     p[0]=node()
     if(len(p)>1):
-        p[0].code+=p[2].code
+        p[0].code=p[1].code+p[2].code
 
 def p_Expression(p):
     """
@@ -786,24 +812,21 @@ def p_Expression(p):
             raise NameError("Invalid types for operator ",p[2].expTList[0],p.lineno(1))
 
         p[0].code=p[1].code+p[3].code
-        if (p[1].info.get("deref")==1):
+        if (p[1].info.get("deref")!=None):
             var1=newTemp()
-            p[0].code.append([var1, "=", "*"+p[1].expList[0]])
+            p[0].code.append([var1,"=","*",p[1].expList[0]])
         else:
             var1=p[1].expList[0]
-        if (p[3].info.get("deref")==1):
+        if (p[3].info.get("deref")!=None):
             var2=newTemp()
-            p[0].code.append([var2, "=", "*"+p[3].expList[0]])
+            p[0].code.append([var2,"=","*",p[3].expList[0]])
         else:
             var2=p[3].expList[0]
-
         p[0].expTList.append(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] ))
         p[0].info["memory"]=0
         var3=newTemp()
         p[0].expList=[var3]
         p[0].code.append([var3,"=",var1,p[2].expTList[0][0]+p[3].expTList[0][0],var2])
-
-
 
 def p_UnaryExpr(p):
     """
@@ -819,19 +842,16 @@ def p_UnaryExpr(p):
         if(checkUnOprn(p[1].expTList[0], p[2].expTList[0])==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0], p.lineno(1))
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
-        ## WHAT IS THIS MAGIC!!!
+        p[0].code=p[2].code
         if(p[1].expTList[0][0]=="*"):
             p[0].info["memory"]=1
+            p[0].info["deref"]=1
+            p[0].expList[0]=p[2].expList[0]
         else:
             p[0].info["memory"]=0
-        var1=newTemp()
-        p[0].expList=[var1]
-        p[0].code=p[2].code
-        #p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])  # MAGIC
-        p[0].code.append([var1,"=", p[1].expTList[0][0], p[2].expList[0]])
-
-
-
+            var1=newTemp()
+            p[0].expList=[var1]
+            p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]]) 
 
 def p_BinaryOp(p):
     """
@@ -910,7 +930,7 @@ def p_PrimaryExpr(p):
     if(len(p)==2 and not isinstance(p[1],str)):
         p[0]=p[1]
         p[0].info["memory"]=0
-        p[0].expList=[p[1]]
+        p[0].expList=p[1].expList
     elif(len(p)==2):
         if(checkUse(p[1],"anywhere")==False):
             raise NameError("Undeclared identifier "+p[1], p.lineno(1))
@@ -920,14 +940,16 @@ def p_PrimaryExpr(p):
         p[0].info["isID"]=p[1]
         p[0].expList=[p[1]]
         temp1=scopeTab[currentScope].table[p[1]]["type"]
-
         if(scopeTab[currentScope].table.get(temp1[0])!=None):
-            print(scopeTab[currentScope].table.get(temp1[0]))
-            if(scopeTab[currentScope].table[temp1[0]]["type"]==["struct"]):
+            if(scopeTab[currentScope].table[temp1[0]]["type"]==["struct"] or scope):
                 var1=newTemp()
-                p[0].code.append([var1,"=", "&"+p[1]])
+                p[0].code.append([var1,"=", "&",p[1]])
                 p[0].info["deref"]=1
                 p[0].expList.append(var1)
+        if(temp1[0][0:3]=="arr" or temp1[0]=="pointer"):
+            var1=newTemp()
+            p[0].code.append([var1,"=", "&",p[1]])
+            p[0].info["deref"]=1
 
     elif(len(p)==4 and p[2]=='.'):
         temp=p[1].expTList[0][0]
@@ -939,32 +961,41 @@ def p_PrimaryExpr(p):
             p[0].info["memory"]=1
             p[0].code=p[1].code
             var1=newTemp()
-            off=scopeTab[currentScope].table[p[1].expTList[0][0]["offset "+p[3]]]
+            off=scopeTab[currentScope].table[p[1].expTList[0][0]]["offset "+p[3]]
             p[0].code.append([var1, "=", p[1].expList[0], '+', off])
             p[0].info["deref"]=1
             p[0].expList.append(var1)
-
-
         else:
             raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
-#    elif(isinstance(p[1],str) and p[1]!='('):
-#        temp=scopeTab[currentScope].table[p[1]]["type"][0]
-#        if(p[1] in scopeTab[currentScope].table and scopeTab[currentScope].table[temp]["type"]==["struct"]):
-#            if(scopeTab[currentScope].table[temp].get(p[3])==None):
-#                raise NameError("No such attribute of given struct",p.lineno(1))
-#            p[0]=node()
-#            p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
-#            p[0].info["memory"]=1
-#        else:
-#            raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
+    
     elif(len(p)==4):
         p[0]=p[2]
+    
     elif(p[2].info.get("index")!=None):
-        if(p[1].expTList[0][0][0:3]=="arr"):
+        if(p[1].expTList[0][0][0:3]!="arr"):
             raise NameError("The type of this expression is not an array ", p.lineno(1))
         p[0]=p[1]
+        p[0].code+=p[2].code
         p[0].expTList[0]=p[0].expTList[0][1:]
         p[0].info["memory"]=1
+        p[0].info["deref"]=1
+        var1=newTemp()
+        p[0].code.append([var1,"=",p[2].expList[0]])
+        for i in range(0,len(p[0].expTList[0])):
+            if(p[0].expTList[0][i][0:3]=="arr"):
+                temp1=int(p[0].expTList[0][i][3:])
+                p[0].code.append([var1,"=",var1,"*",temp1])
+            else:
+                width=0
+                if(p[0].expTList[0][i]=="pointer"):
+                    width=4
+                else:
+                    width=scopeTab[currentScope].typeSList[p[0].expTList[0][i]]
+                p[0].code.append([var1,"=",var1,"*",width])
+                p[0].code.append([var1,"=",var1,'+',p[0].expList[0]])
+                break
+        p[0].expList=[var1]
+    
     elif(p[2].info.get("arguments")!=None):
         if(p[1].expTList[0][0]!="func" or p[1].info.get("isID")==None):
             raise NameError("The primary expression is not a function", p.lineno(1))
@@ -1041,6 +1072,7 @@ def p_TrueLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["bool"])
+    p[0].expList.append(1)
 
 def p_FalseLit(p):
     """
@@ -1048,6 +1080,7 @@ def p_FalseLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["bool"])
+    p[0].expList.append(0)
 
 def p_IntLit(p):
     """
@@ -1055,6 +1088,7 @@ def p_IntLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["int"])
+    p[0].expList.append(p[1])
 
 def p_FloatLit(p):
     """
@@ -1062,6 +1096,7 @@ def p_FloatLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["float"])
+    p[0].expList.append(p[1])
 
 def p_RuneLit(p):
     """
@@ -1069,6 +1104,7 @@ def p_RuneLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["rune"])
+    p[0].expList.append(p[1])
 
 def p_StringLit(p):
     """
@@ -1076,6 +1112,7 @@ def p_StringLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["string"])
+    p[0].expList.append(p[1])
 
 def p_Statement(p):
     """
@@ -1107,7 +1144,7 @@ def p_SimpleStmt(p):
     else:
         p[0]=node()
     b=node()
-    if(type(p[1])==type(b)):
+    if(p[1].expTList!=[]):
         if(p[1].expTList==[["void"]]):
             a=0
         else:
@@ -1121,6 +1158,25 @@ def p_IncDecStmt(p):
     p[0]=p[1]
     if(p[0].expTList!=[["int"]]):
         raise NameError("This operation can only be done on integers", p.lineno(1))
+    if(p[1].info["memory"]==0):
+        raise NameError("This expression isn't a memory location",p.lineno(1))
+    if(p[1].info.get("deref")==None):
+        if(p[2]=="++"):
+            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'+',1])
+        if(p[2]=="--"):
+            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'-',1])
+    else:
+        if(p[2]=="++"):
+            var1=newTemp()
+            p[0].code.append([var1,"=","*",p[1].expList[0]])
+            p[0].code.append([var1,"=",var1,'+int',1])
+            p[0].code.append(["*",p[1].expList[0],"=",var1])
+        if(p[2]=="--"):
+            var1=newTemp()
+            p[0].code.append([var1,"=","*",p[1].expList[0]])
+            p[0].code.append([var1,"=",var1,'-int',1])
+            p[0].code.append(["*",p[1].expList[0],"=",var1])
+    p[0].expTList=[]
 
 def p_Assignment(p):
     """
@@ -1142,6 +1198,23 @@ def p_Assignment(p):
     for i in range(0,len(p[1].expTList)):
         if(p[1].expTList[i] != p[3].expTList[i]):
             raise NameError("Mismatch of type for ",p[1].expTList[i], p.lineno(1))
+    p[0].code+=p[1].code+p[3].code
+    for i in range (0,len(p[1].expTList)):
+        if(p[1].info["dereflist"][i]==1):
+            if(p[3].info["dereflist"][i]==1):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[3].expList[i]])
+                p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],var1])
+            else:
+                p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+        else:
+            if(p[3].info["dereflist"][i]==1):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[3].expList[i]])
+                p[0].code.append([p[1].expList[i],p[2].expTList[0][0],var1])
+            else:
+                p[0].code.append([p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+    p[0].expTList=[]
 
 def p_AssignOp(p):
     """
@@ -1176,6 +1249,7 @@ def p_ReturnStmt(p):
         raise NameError("The return type for this function is not void",p.lineno(1))
     if(len(p)==3 and not scopeTab[0].table[currentFunc]["returns"]==p[2].expTList):
         raise NameError("The return type for this function doesn't match",p.lineno(1))
+    p[0]=node()
 
 def p_BreakStmt(p):
     """
@@ -1184,6 +1258,7 @@ def p_BreakStmt(p):
     """
     if(openF==0 and openW==0):
         raise NameError("Break can be only done inside loops and switches",p.lineno(1))
+    p[0]=node()
 
 def p_ContinueStmt(p):
     """
@@ -1192,6 +1267,7 @@ def p_ContinueStmt(p):
     """
     if(openF==0):
         raise NameError("Continue can be only done inside loops",p.lineno(1))
+    p[0]=node()
 
 def p_GotoStmt(p):
     """
@@ -1220,6 +1296,11 @@ def p_ShortVarDecl(p):
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
         scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
         offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+    p[0]=node()
+    p[0].code=p[3].code
+    for i in range(0,len(p[1].idList)):
+        p[0].code.append([p[1].idList[i],"=",p[3].expList[i]])
+    p[0].expTList=[]
 
 def p_IfStmt(p):
     """
@@ -1229,16 +1310,19 @@ def p_IfStmt(p):
     """
     if(not p[3].expTList[0]==["bool"]):
         raise NameError("The type of expression in if must be boolean", p.lineno(1))
+    p[0]=node()
 
 def p_SwitchStmt(p):
     """
     SwitchStmt : ExprSwitchStmt
     """
+    p[0]=node()
 
 def p_ExprSwitchStmt(p):
     """
     ExprSwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
     """
+    p[0]=node()
 
 def p_ExpressionName(p):
     """
@@ -1249,6 +1333,7 @@ def p_ExpressionName(p):
     if(p[1].expTList[0][0]!="int" or p[1].expTList[0][0]!="rune" or p[1].expTList[0][0]!="bool"):
         raise NameError("Only int,bool and runes are allowed in switch")
     currentSwitch=p[1].expTList[0][0]
+    p[0]=node()
 
 
 def p_ExprCaseClause_curl(p):
@@ -1257,11 +1342,13 @@ def p_ExprCaseClause_curl(p):
                         | DefCaseClause
                         |
     """
+    p[0]=node()
 
 def p_ExprCaseClause(p):
     """
     ExprCaseClause : OpenS ExprSwitchCase COLON StatementList CloseS
     """
+    p[0]=node()
 
 def p_ExprSwitchCase(p):
     """
@@ -1273,11 +1360,13 @@ def p_ExprSwitchCase(p):
         raise NameError("Only int,bool and runes are allowed in switch")
     if(currentSwitch!=p[2].expTList[0][0]):
         raise NameError("type mismatch in case and switch",p.lineno(1))
+    p[0]=node()
 
 def p_DefCaseClause(p):
     """
     DefCaseClause : OpenS DEFAULT COLON StatementList CloseS
     """
+    p[0]=node()
 
 def p_ForStmt(p):
     """
@@ -1290,6 +1379,7 @@ def p_ForStmt(p):
     elif(len(p)==5):
         if(len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool"):
             raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
+    p[0]=node()
 
 def p_OpenF(p):
     """
@@ -1328,9 +1418,6 @@ def p_ForClause(p):
     p[0].info["forclause"]=1
     if(len(p)==6 and (len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool")):
         raise NameError("Only boolean value is allowed in expression in for loop",p.lineno(1))
-
-#def p_error(p):
-#    print("Syntax Error at Line No:", p.lineno, "at position", p.lexpos, p.value)
 
 def p_error(p):
     if p:
