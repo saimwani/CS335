@@ -196,8 +196,9 @@ def p_TopLevelDecl_curl(p):
                     |
     """
     p[0]=node()
-    p[0].code+=p[1].code
-    p[0].code+=p[2].code
+    if(len(p)>1):
+        p[0].code+=p[1].code
+        p[0].code+=p[2].code
 
 def p_ImportDecl_curl(p):
     """
@@ -205,8 +206,9 @@ def p_ImportDecl_curl(p):
                   |
     """
     p[0]=node()
-    p[0].code+=p[1].code
-    p[0].code+=p[2].code
+    if(len(p)>1):
+        p[0].code+=p[1].code
+        p[0].code+=p[2].code
 
 def p_PackageClause(p):
     """
@@ -272,16 +274,17 @@ def p_ConstSpec_curl(p):
     ConstSpec_curl : ConstSpec_curl ConstSpec SEMICOLON
                    |
     """
-    p[0]=p[1]
-    p[0].code+=p[2].code
+    p[0]=node()
+    if(len(p)>1):
+        p[0].code+=p[2].code
 
 def p_ConstSpec(p):
     """
     ConstSpec : IdentifierList ID ASSIGN ExpressionList
     """
     p[0]=node()
-    p[0]code+=p[1].code
-    p[0]code+=p[4].code
+    p[0].code+=p[1].code
+    p[0].code+=p[4].code
     if(isinstance(p[2],str) and not p[2] in basicTypes):
         raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
 
@@ -303,7 +306,7 @@ def p_ConstSpec(p):
             raise ("Mismatch of type for "+p[1].idList[i])
 
     for i in range(0,len(p[1].idList)):
-        p[0].code.append([p[1].idList[i],"=",p[4].expList[i])
+        p[0].code.append([p[1].idList[i],"=",p[4].expList[i]])
 
 
 def p_IdentifierList(p):
@@ -380,8 +383,9 @@ def p_VarSpec_curl(p):
     VarSpec_curl : VarSpec_curl VarSpec SEMICOLON
                  |
     """
-    p[0]=p[1]
-    p[0].code+=p[2].code
+    p[0]=node()
+    if(len(p)>1):
+        p[0].code+=p[2].code
 
 def p_VarSpec(p):
     """
@@ -391,10 +395,11 @@ def p_VarSpec(p):
             | IdentifierList ID
             | IdentifierList Type
     """
+    p[0]=node()
     if (len(p)==4 or len(p)==5):
         for i in range(0,len(p[4].expTList)):
-            if(!(expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
-                raise ("Invalid Assignment")
+            if(not (expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
+                raise NameError ("Invalid Assignment")
         raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
 
     if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
@@ -762,8 +767,9 @@ def p_Statement_curl(p):
     Statement_curl : Statement_curl Statement SEMICOLON
                    |
     """
-    p[0]=p[1]
-    p[0].code+=p[2].code
+    p[0]=node()
+    if(len(p)>1):
+        p[0].code+=p[2].code
 
 def p_Expression(p):
     """
@@ -778,12 +784,26 @@ def p_Expression(p):
             raise NameError("Can't apply binary operators to multiple values", p.lineno(1))
         if(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] )==None):
             raise NameError("Invalid types for operator ",p[2].expTList[0],p.lineno(1))
+
+        p[0].code=p[1].code+p[3].code
+        if (p[1].info.get("deref")==1):
+            var1=newTemp()
+            p[0].code.append([var1, "=", "*"+p[1].expList[0]])
+        else:
+            var1=p[1].expList[0]
+        if (p[3].info.get("deref")==1):
+            var2=newTemp()
+            p[0].code.append([var2, "=", "*"+p[3].expList[0]])
+        else:
+            var2=p[3].expList[0]
+
         p[0].expTList.append(checkOprn(p[1].expTList[0] , p[2].expTList[0], p[3].expTList[0] ))
         p[0].info["memory"]=0
-        var1=newTemp()
-        p[0].expList=[var1]
-        p[0].code=p[1].code+p[3].code
-        p[0].code.append([var1,"=",p[1].expList[0],p[2].expTList[0][0]+p[3].expTList[0][0],p[3].expList[0]])
+        var3=newTemp()
+        p[0].expList=[var3]
+        p[0].code.append([var3,"=",var1,p[2].expTList[0][0]+p[3].expTList[0][0],var2])
+
+
 
 def p_UnaryExpr(p):
     """
@@ -899,6 +919,12 @@ def p_PrimaryExpr(p):
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
         p[0].expList=[p[1]]
+        temp1=scopeTab[currentScope].table[p[1]]["type"]
+
+        if(scopeTab[currentScope].table.get(temp1[0])!=None):
+            print(scopeTab[currentScope].table.get(temp1[0]))
+
+
     elif(len(p)==4 and p[2]=='.'):
         temp=p[1].expTList[0][0]
         if(scopeTab[currentScope].table.get(temp)!=None and scopeTab[currentScope].table[temp]["type"]==["struct"]):
@@ -908,11 +934,11 @@ def p_PrimaryExpr(p):
             p[0].expTList.append(scopeTab[currentScope].table[temp][p[3]])
             p[0].info["memory"]=1
             p[0].code=p[1].code
-            add1=newAdd()
+            var1=newTemp()
             off=scopeTab[currentScope].table[p[1].expTList[0][0]["offset "+p[3]]]
-            p[0].code.append([add1, "=", p[1].info["address"], '+', off])
-            p[0].info["address"]=add1
+            p[0].code.append([var1, "=", p[1].expList[0], '+', off])
             p[0].info["deref"]=1
+            p[0].expList.append(var1)
 
 
         else:
@@ -1062,6 +1088,7 @@ def p_Statement(p):
               | SwitchStmt
               | ForStmt
     """
+    p[0]=p[1]
 
 def p_SimpleStmt(p):
     """
@@ -1071,6 +1098,10 @@ def p_SimpleStmt(p):
                | ShortVarDecl
                |
     """
+    if(len(p)>1):
+        p[0]=p[1]
+    else:
+        p[0]=node()
     b=node()
     if(type(p[1])==type(b)):
         if(p[1].expTList==[["void"]]):
@@ -1083,6 +1114,7 @@ def p_IncDecStmt(p):
     IncDecStmt : Expression INC
                | Expression DEC
     """
+    p[0]=p[1]
     if(p[0].expTList!=[["int"]]):
         raise NameError("This operation can only be done on integers", p.lineno(1))
 
@@ -1090,15 +1122,14 @@ def p_Assignment(p):
     """
     Assignment : ExpressionList AssignOp ExpressionList
     """
-
+    p[0]=node()
     for i in range(0,len(p[3].expTList)):
         if(p[2].info["op"]=="="):
-            if(!(expTList[i][0] in basicTypes or expTList[i][0]=="pointer")):
+            if( not (p[1].expTList[i][0] in basicTypes or p[3].expTList[i][0]=="pointer")):
                 raise ("Invalid Assignment")
         else:
-            if(expTList[i][0] not in basicTypes):
+            if(p[1].expTList[i][0] not in basicTypes):
                 raise ("Invalid Assignment")
-    raise NameError("Invalid type for constant declaration "+p[2], p.lienno(1))
     if(p[1].info["memory"]==0):
         raise NameError("Assignment not allowed for this expression list", p.lineno(1))
     if(len(p[1].expTList) != len(p[3].expTList)):
