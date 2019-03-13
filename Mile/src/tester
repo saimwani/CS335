@@ -9,18 +9,26 @@ type ab struct{
     ab struct *ab
 }
 func abs(ad,ag int, fj,kl float) {
-//    ad =3
+    ad =3
     var a string
-//    a="dddd"
+    a="dddd"
     return 
 }
 func main() {
     var a,a1,a2,a3 int
     (a),a1,a2,a3=1,2,3,4
-    for a<a1{
+/*    for a<a1{
         a1 = a2<<a3*a1|a
         var b cd
         break
         var x float=b.ab
+    }*/
+    switch a {
+        case a2 : 
+            var x int
+            x=4
+        case a3+ a1 :
+            a=9
+         default : a=8
     }
 }

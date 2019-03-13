@@ -485,7 +485,8 @@ def p_FunctionDecl(p):
     """
     FunctionDecl : FUNC FuncName OpenS Signature Block CloseS
     """
-    p[0]=p[4]
+    p[0]=node()
+    p[0].code=p[2].code+p[4].code
     p[0].code+=p[5].code
 
 def p_FuncName(p):
@@ -498,6 +499,7 @@ def p_FuncName(p):
         raise NameError('The name of function has been used elsewhere :'+p[1], p.lineno(1))
     scopeTab[0].insert(p[1],["func"])
     currentFunc=p[1]
+    p[0].code=[[p[1],":"]]
 
 def p_Type(p):
     """
@@ -967,7 +969,7 @@ def p_PrimaryExpr(p):
             p[0].code=p[1].code
             var1=newTemp()
             off=scopeTab[currentScope].table[p[1].expTList[0][0]]["offset "+p[3]]
-            p[0].code.append([var1, "=", p[1].expList[0], '+', off])
+            p[0].code.append([var1, "=", p[1].expList[0], '+int', off])
             p[0].info["deref"]=1
             p[0].expList.append(var1)
         else:
@@ -989,15 +991,15 @@ def p_PrimaryExpr(p):
         for i in range(0,len(p[0].expTList[0])):
             if(p[0].expTList[0][i][0:3]=="arr"):
                 temp1=int(p[0].expTList[0][i][3:])
-                p[0].code.append([var1,"=",var1,"*",temp1])
+                p[0].code.append([var1,"=",var1,"*int",temp1])
             else:
                 width=0
                 if(p[0].expTList[0][i]=="pointer"):
                     width=4
                 else:
                     width=scopeTab[currentScope].typeSList[p[0].expTList[0][i]]
-                p[0].code.append([var1,"=",var1,"*",width])
-                p[0].code.append([var1,"=",var1,'+',p[0].expList[0]])
+                p[0].code.append([var1,"=",var1,"*int",width])
+                p[0].code.append([var1,"=",var1,'+int',p[0].expList[0]])
                 break
         p[0].expList=[var1]
 
@@ -1167,9 +1169,9 @@ def p_IncDecStmt(p):
         raise NameError("This expression isn't a memory location",p.lineno(1))
     if(p[1].info.get("deref")==None):
         if(p[2]=="++"):
-            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'+',1])
+            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'+int',1])
         if(p[2]=="--"):
-            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'-',1])
+            p[0].code.append([p[1].expList[0],"=",p[1].expList[0],'-int',1])
     else:
         if(p[2]=="++"):
             var1=newTemp()
@@ -1205,6 +1207,13 @@ def p_Assignment(p):
             raise NameError("Mismatch of type for ",p[1].expTList[i], p.lineno(1))
     p[0].code+=p[1].code+p[3].code
     for i in range (0,len(p[1].expTList)):
+        temp=None
+        if(p[2].expTList[0][0]!="="):
+            temp=checkOprn(p[1].expTList[i],[p[2].expTList[0][0][0:-1]],p[3].expTList[i])
+            if(temp==None):
+                raise NameError("Invalid operation for this type",p.lineno(1))
+        if(temp!=None):
+            p[2].expTList[0][0]+=temp
         if(p[1].info["dereflist"][i]==1):
             if(p[3].info["dereflist"][i]==1):
                 var1=newTemp()
@@ -1228,8 +1237,6 @@ def p_AssignOp(p):
              | MUL_ASSIGN
              | DIV_ASSIGN
              | MOD_ASSIGN
-             | AND_ASSIGN
-             | AND_NOT_ASSIGN
              | OR_ASSIGN
              | XOR_ASSIGN
              | SHL_ASSIGN
@@ -1349,8 +1356,9 @@ def p_SwitchStmt(p):
     """
     global endFor
     p[0]=node()
-    endFor=endFor[0:-1]
     p[0].code=p[2].code+p[5].code
+    p[0].code.append([endFor[-1],":"])
+    endFor=endFor[0:-1]
 
 
 def p_ExpressionName(p):
@@ -1363,25 +1371,19 @@ def p_ExpressionName(p):
     if(len(p[1].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
     if(p[1].expTList[0][0]!="int" and p[1].expTList[0][0]!="rune" and p[1].expTList[0][0]!="bool"):
-        #print(p[1].expTList[0][0])
         raise NameError("Only int,bool and runes are allowed in switch")
     currentSwitch=p[1].expTList[0][0]
-    print(currentSwitch)
     switchExp=p[0].expList[0]
-
-    label1=newLabel()
-    endFor.append(label1)
+    label1=newLabel(2)
 
 
 def p_ExprCaseClause_curl(p):
     """
-    ExprCaseClause_curl : ExprCaseClause_curl ExprCaseClause
+    ExprCaseClause_curl : ExprCaseClause ExprCaseClause_curl
                         | DefCaseClause
-                        |
+                        | ExprCaseClause
     """
-    if(len(p)<=1):
-        p[0]=node()
-    elif(len(p)==2):
+    if(len(p)==2):
         p[0]=p[1]
     else:
         p[0]=p[1]
@@ -1396,27 +1398,26 @@ def p_ExprCaseClause(p):
     p[0]=node()
     if(len(p[3].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
-    if(p[3].expTList[0][0]!="int" and p[3].expTList[0][0]!="rune" and p[3].expTList[0][0]!="bool"):
-        raise NameError("Only int,bool and runes are allowed in switch")
+    if(p[3].expTList[0][0]!="int" and p[3].expTList[0][0]!="rune"):
+        raise NameError("Only int and runes are allowed in switch")
     if(currentSwitch!=p[3].expTList[0][0]):
         print(currentSwitch)
         raise NameError("type mismatch in case and switch",p.lineno(1))
     var1=newTemp()
     label1=newLabel()
-    p[0].code.append([var1, "=", switchExp, '-', p[3].expList[0]])
-    p[0].code.append(["ifnot", var1, "==", '0', "goto", label1 ])
-    p[0].code.append([p[5].code])
+    p[0].code.append([var1, "=", switchExp, '-'+p[3].expTList[0][0], p[3].expList[0]])
+    p[0].code.append([var1,"=",var1,"==",'0'])
+    p[0].code.append(["ifnot", var1, "goto", label1 ])
+    p[0].code+=p[5].code
     p[0].code.append(["goto", endFor[-1]])
     p[0].code.append([label1, ":"])
 
 def p_DefCaseClause(p):
     """
-    DefCaseClause : OpenS DEFAULT COLON StatementList CloseS
+    DefCaseClause : DEFAULT COLON OpenS StatementList CloseS
     """
     p[0]=node()
     p[0].code=p[4].code
-    p[0].code.append([endFor[-1], ":"])
-
 
 def p_ForStmt(p):
     """
@@ -1520,5 +1521,4 @@ parser=yacc.yacc()
 
 with open(sys.argv[1],'r') as f:
     input_str = f.read()
-
 out=parser.parse(input_str,tracking=True)
