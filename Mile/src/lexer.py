@@ -33,7 +33,7 @@ tokens=['ID','INT','FLOAT','STRING',
         'ADD','SUB','MUL','DIV','MOD',
         'AND','OR','XOR','SHL','SHR','AND_NOT',
         'ADD_ASSIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN','MOD_ASSIGN',
-        'AND_ASSIGN','OR_ASSIGN','XOR_ASSIGN','SHL_ASSIGN','SHR_ASSIGN','AND_NOT_ASSIGN',
+        'OR_ASSIGN','XOR_ASSIGN','SHL_ASSIGN','SHR_ASSIGN',
         'LAND','LOR','INC','DEC',
 	'EQL','LTN','GTN','ASSIGN','NOT',
         'NEQ','LEQ','GEQ','DEFINE',
@@ -137,18 +137,6 @@ def t_DIV_ASSIGN(t):
 
 def t_MOD_ASSIGN(t):
     r'%='
-    global prev_token
-    prev_token=t.type
-    return t
-
-def t_AND_ASSIGN(t):
-    r'&='
-    global prev_token
-    prev_token=t.type
-    return t
-
-def t_AND_NOT_ASSIGN(t):
-    r'&\^='
     global prev_token
     prev_token=t.type
     return t

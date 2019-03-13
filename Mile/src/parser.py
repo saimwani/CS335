@@ -154,13 +154,14 @@ def checkUnOprn(unop,exp1):
 
 def newTemp():
     global tempCount
-    newt="t_"+str(tempCount)
+    newt="temp#"+str(tempCount)
     tempCount+=1
+    scopeTab[currentScope].insert(newt,"Temporary")
     return newt
 
 def newLabel(a=None):
     global labelCount
-    newl="label_"+str(labelCount)
+    newl="label#"+str(labelCount)
     labelCount+=1
     if(a!=None and a==1):
         startFor.append(newl)
