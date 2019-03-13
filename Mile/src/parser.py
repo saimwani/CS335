@@ -50,6 +50,7 @@ labelCount=1
 structSymbolList=[]
 startFor=[]
 endFor=[]
+switchExp=""
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
@@ -158,7 +159,7 @@ def newTemp():
     return newt
 
 def newLabel(a=None):
-    global labelCount 
+    global labelCount
     newl="label_"+str(labelCount)
     labelCount+=1
     if(a!=None and a==1):
@@ -854,7 +855,7 @@ def p_UnaryExpr(p):
             p[0].info["memory"]=0
             var1=newTemp()
             p[0].expList=[var1]
-            p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]]) 
+            p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
 
 def p_BinaryOp(p):
     """
@@ -971,10 +972,10 @@ def p_PrimaryExpr(p):
             p[0].expList.append(var1)
         else:
             raise NameError("The identifier is not declared or isn't a struct", p.lineno(1))
-    
+
     elif(len(p)==4):
         p[0]=p[2]
-    
+
     elif(p[2].info.get("index")!=None):
         if(p[1].expTList[0][0][0:3]!="arr"):
             raise NameError("The type of this expression is not an array ", p.lineno(1))
@@ -999,7 +1000,7 @@ def p_PrimaryExpr(p):
                 p[0].code.append([var1,"=",var1,'+',p[0].expList[0]])
                 break
         p[0].expList=[var1]
-    
+
     elif(p[2].info.get("arguments")!=None):
         if(p[1].expTList[0][0]!="func" or p[1].info.get("isID")==None):
             raise NameError("The primary expression is not a function", p.lineno(1))
@@ -1347,17 +1348,24 @@ def p_SwitchStmt(p):
     SwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
     """
     p[0]=node()
+    endFor=endFor[0:-1]
+
+
 
 def p_ExpressionName(p):
     """
     ExpressionName : Expression
     """
+    global switchExp
     if(len(p[1].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
     if(p[1].expTList[0][0]!="int" or p[1].expTList[0][0]!="rune" or p[1].expTList[0][0]!="bool"):
         raise NameError("Only int,bool and runes are allowed in switch")
     currentSwitch=p[1].expTList[0][0]
     p[0]=node()
+    switchExp=p[0].expList[0]
+    label1=newLabel()
+    endFor.append(label1)
 
 
 def p_ExprCaseClause_curl(p):
@@ -1366,12 +1374,20 @@ def p_ExprCaseClause_curl(p):
                         | DefCaseClause
                         |
     """
-    p[0]=node()
+    if(len(p)<1):
+        p[0]=node()
+    elif(len(p)==2):
+        p[0]=p[1]
+    else:
+        p[0]=p[1]
+        p[0].code+=p[2].code
+
 
 def p_ExprCaseClause(p):
     """
     ExprCaseClause : OpenS CASE Expression COLON StatementList CloseS
     """
+    global switchExp
     p[0]=node()
     if(len(p[3].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
@@ -1379,12 +1395,22 @@ def p_ExprCaseClause(p):
         raise NameError("Only int,bool and runes are allowed in switch")
     if(currentSwitch!=p[3].expTList[0][0]):
         raise NameError("type mismatch in case and switch",p.lineno(1))
+    var1=newTemp()
+    label1=newLabel()
+    p[0].code.append([var1, "=", switchExp, '-', p[3].expList[0]])
+    p[0].code.append(["ifnot", var1, "==", '0', "goto", label1 ])
+    p[0].code.append([p[5].code])
+    p[0].code.append(["goto", endFor[-1]])
+    p[0].code.append([label1, ":"])
 
 def p_DefCaseClause(p):
     """
     DefCaseClause : OpenS DEFAULT COLON StatementList CloseS
     """
     p[0]=node()
+    p[0].code=p[4].code
+    p[0].code.append([endFor[-1], ":"])
+
 
 def p_ForStmt(p):
     """
