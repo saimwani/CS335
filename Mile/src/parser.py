@@ -37,11 +37,8 @@ scopeTab={}
 scopeList=[0]
 offsetList=[0]
 scopeTab[0]=symbolTable()
-currentScope=0
-scopeNum=0
-currentFunc=0
-currentStruct=0
-structOff=0
+currentScope=0,scopeNum=0,currentFunc=0
+currentStruct=0,structOff=0
 openF=0
 openW=0
 currentSwitch=0
