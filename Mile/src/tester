@@ -1,6 +1,5 @@
 package main
 import "fmt"
-//var a int=6*3
 type cd struct{
     ab float
 }
@@ -16,8 +15,12 @@ func abs(ad,ag int, fj,kl float) {
     return 
 }
 func main() {
-    var a [4][4]int
-    a[3][1]=4
-    var c float
-    var x,c1 string
+    var a,a1,a2,a3 int
+    (a),a1,a2,a3=1,2,3,4
+    for a<a1{
+        a1 = a2<<a3*a1|a
+        var b cd
+        break
+        var x float=b.ab
+    }
 }

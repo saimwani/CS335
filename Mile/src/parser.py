@@ -46,8 +46,10 @@ openF=0
 openW=0
 currentSwitch=0
 tempCount=1
-addCount=1
+labelCount=1
 structSymbolList=[]
+startFor=[]
+endFor=[]
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
@@ -155,11 +157,15 @@ def newTemp():
     tempCount+=1
     return newt
 
-def newAdd():
-    global addCount
-    newt="a_"+str(addCount)
-    addCount+=1
-    return newt
+def newLabel(a=None):
+    global labelCount 
+    newl="label_"+str(labelCount)
+    labelCount+=1
+    if(a!=None and a==1):
+        startFor.append(newl)
+    if(a!=None and a==2):
+        endFor.append(newl)
+    return newl
 
 def p_SourceFile(p):
     """
@@ -666,7 +672,6 @@ def p_Signature(p):
     """
     p[0]=node()
 
-#introduced CHAN
 def p_Result(p):
     """
     Result : LPAREN TypeList RPAREN
@@ -714,8 +719,6 @@ def p_Parameters(p):
         scopeTab[0].updateList(currentFunc,"takes",[["void"]])
     else:
         scopeTab[0].updateList(currentFunc,"takes",p[2].idList)
-
-#Introduced CHAN
 
 def p_ParameterList(p):
     """
@@ -939,9 +942,10 @@ def p_PrimaryExpr(p):
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
         p[0].expList=[p[1]]
-        temp1=scopeTab[currentScope].table[p[1]]["type"]
-        if(scopeTab[currentScope].table.get(temp1[0])!=None):
-            if(scopeTab[currentScope].table[temp1[0]]["type"]==["struct"] or scope):
+        x=checkUse(p[1],'anywhere')
+        temp1=scopeTab[x].table[p[1]]["type"]
+        if(scopeTab[x].table.get(temp1[0])!=None):
+            if(scopeTab[x].table[temp1[0]]["type"]==["struct"] or scope):
                 var1=newTemp()
                 p[0].code.append([var1,"=", "&",p[1]])
                 p[0].info["deref"]=1
@@ -1259,6 +1263,7 @@ def p_BreakStmt(p):
     if(openF==0 and openW==0):
         raise NameError("Break can be only done inside loops and switches",p.lineno(1))
     p[0]=node()
+    p[0].code.append(["goto",endFor[-1]])
 
 def p_ContinueStmt(p):
     """
@@ -1268,6 +1273,7 @@ def p_ContinueStmt(p):
     if(openF==0):
         raise NameError("Continue can be only done inside loops",p.lineno(1))
     p[0]=node()
+    p[0].code.append(["goto",startFor[-1]])
 
 def p_GotoStmt(p):
     """
@@ -1294,7 +1300,7 @@ def p_ShortVarDecl(p):
         if(checkUse(p[1].idList[i],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
-        scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
+        scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentScope])
         offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
     p[0]=node()
     p[0].code=p[3].code
@@ -1308,15 +1314,39 @@ def p_IfStmt(p):
            | IF OpenS Expression Block CloseS ELSE IfStmt
            | IF OpenS Expression Block CloseS ELSE OpenS Block CloseS
     """
-    if(not p[3].expTList[0]==["bool"]):
+    if(not p[3].expTList[0]==["bool"] or len(p[3].expTList)>1):
         raise NameError("The type of expression in if must be boolean", p.lineno(1))
     p[0]=node()
+    p[0].code+=p[3].code
+    if(len(p)==6):
+        label1=newLabel()
+        p[0].code.append(["ifnot",p[3].expList[0],"goto",label1])
+        p[0].code+=p[4].code
+        p[0].code.append([label1,":"])
+    elif(len(p)==8):
+        label1=newLabel()
+        label2=newLabel()
+        p[0].code.append(["ifnot",p[3].expList[0],"goto",label1])
+        p[0].code+=p[4].code
+        p[0].code.append(["goto",label2])
+        p[0].code.append([label1,":"])
+        p[0].code+=p[7].code
+        p[0].code.append([label2,":"])
+    else:
+        label1=newLabel()
+        label2=newLabel()
+        p[0].code.append(["ifnot",p[3].expList[0],"goto",label1])
+        p[0].code+=p[4].code
+        p[0].code.append(["goto",label2])
+        p[0].code.append([label1,":"])
+        p[0].code+=p[8].code
+        p[0].code.append([label2,":"])
 
 def p_SwitchStmt(p):
     """
     SwitchStmt : ExprSwitchStmt
     """
-    p[0]=node()
+    p[0]=p[1]
 
 def p_ExprSwitchStmt(p):
     """
@@ -1374,12 +1404,33 @@ def p_ForStmt(p):
             | FOR OpenS OpenF ForClause Block CloseF CloseS
             | FOR OpenS OpenF Block CloseF CloseS
     """
-    if(len(p)==5 and p[3].info.get("forclause")!=None):
-        a=0
-    elif(len(p)==5):
-        if(len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool"):
-            raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
+    global startFor,endFor
     p[0]=node()
+    if(len(p)==8 and p[4].info.get("forclause")!=None):
+        p[0].code=p[4].code
+        p[0].code+=p[5].code
+        p[0].code+=p[4].info["forLabelPass"]
+    elif(len(p)==8):
+        if(len(p[4].expTList)>1 or p[4].expTList[0][0]!="bool"):
+            raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
+        label1=newLabel()
+        label2=newLabel()
+        p[0].code.append([startFor[-1],":"])
+        p[0].code+=p[4].code
+        p[0].code.append([label2,":"])
+        p[0].code.append(["ifnot",p[4].expList[0],"goto",label1])
+        p[0].code+=p[5].code
+        p[0].code.append(["goto",label2])
+        p[0].code.append([label1,":"])
+    else:
+        label1=newLabel()
+        p[0].code.append([startFor[-1],":"])
+        p[0].code.append([label1,":"])
+        p[0].code+=p[4].code
+        p[0].code.append(["goto",label1])
+    p[0].code.append([endFor[-1],":"])
+    startFor=startFor[0:-1]
+    endFor=endFor[0:-1]
 
 def p_OpenF(p):
     """
@@ -1387,6 +1438,8 @@ def p_OpenF(p):
     """
     global openF
     openF+=1
+    newLabel(1)
+    newLabel(2)
 
 def p_CloseF(p):
     """
@@ -1418,6 +1471,22 @@ def p_ForClause(p):
     p[0].info["forclause"]=1
     if(len(p)==6 and (len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool")):
         raise NameError("Only boolean value is allowed in expression in for loop",p.lineno(1))
+    p[0].code=p[1].code
+    p[0].code.append([startFor[-1],":"])
+    label1=newLabel()
+    p[0].code.append([label1,":"])
+    if(len(p)==6):
+        label2=newLabel()
+        p[0].code+=p[3].code
+        p[0].code.append(["ifnot",p[3].expList[0],"goto",label2])
+        p[0].info["forLabelPass"]=[]
+        p[0].info["forLabelPass"]+=p[5].code
+        p[0].info["forLabelPass"].append(["goto",label1])
+        p[0].info["forLabelPass"].append([label2,":"])
+    else:
+        p[0].info["forLabelPass"]=[]
+        p[0].info["forLabelPass"]+=p[4].code
+        p[0].info["forLabelPass"].append(["goto",label1])
 
 def p_error(p):
     if p:
