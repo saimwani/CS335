@@ -1344,13 +1344,7 @@ def p_IfStmt(p):
 
 def p_SwitchStmt(p):
     """
-    SwitchStmt : ExprSwitchStmt
-    """
-    p[0]=p[1]
-
-def p_ExprSwitchStmt(p):
-    """
-    ExprSwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
+    SwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
     """
     p[0]=node()
 
@@ -1376,21 +1370,15 @@ def p_ExprCaseClause_curl(p):
 
 def p_ExprCaseClause(p):
     """
-    ExprCaseClause : OpenS ExprSwitchCase COLON StatementList CloseS
+    ExprCaseClause : OpenS CASE Expression COLON StatementList CloseS
     """
     p[0]=node()
-
-def p_ExprSwitchCase(p):
-    """
-    ExprSwitchCase : CASE Expression
-    """
-    if(len(p[2].expTList)>1):
+    if(len(p[3].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
-    if(p[2].expTList[0][0]!="int" or p[2].expTList[0][0]!="rune" or p[2].expTList[0][0]!="bool"):
+    if(p[3].expTList[0][0]!="int" or p[3].expTList[0][0]!="rune" or p[3].expTList[0][0]!="bool"):
         raise NameError("Only int,bool and runes are allowed in switch")
-    if(currentSwitch!=p[2].expTList[0][0]):
+    if(currentSwitch!=p[3].expTList[0][0]):
         raise NameError("type mismatch in case and switch",p.lineno(1))
-    p[0]=node()
 
 def p_DefCaseClause(p):
     """
