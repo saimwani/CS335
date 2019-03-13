@@ -1347,23 +1347,28 @@ def p_SwitchStmt(p):
     """
     SwitchStmt : SWITCH ExpressionName LBRACE OpenW ExprCaseClause_curl CloseW RBRACE
     """
+    global endFor
     p[0]=node()
     endFor=endFor[0:-1]
-
+    p[0].code=p[2].code+p[5].code
 
 
 def p_ExpressionName(p):
     """
     ExpressionName : Expression
     """
+    p[0]=p[1]
     global switchExp
+    global currentSwitch
     if(len(p[1].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
-    if(p[1].expTList[0][0]!="int" or p[1].expTList[0][0]!="rune" or p[1].expTList[0][0]!="bool"):
+    if(p[1].expTList[0][0]!="int" and p[1].expTList[0][0]!="rune" and p[1].expTList[0][0]!="bool"):
+        #print(p[1].expTList[0][0])
         raise NameError("Only int,bool and runes are allowed in switch")
     currentSwitch=p[1].expTList[0][0]
-    p[0]=node()
+    print(currentSwitch)
     switchExp=p[0].expList[0]
+
     label1=newLabel()
     endFor.append(label1)
 
@@ -1374,7 +1379,7 @@ def p_ExprCaseClause_curl(p):
                         | DefCaseClause
                         |
     """
-    if(len(p)<1):
+    if(len(p)<=1):
         p[0]=node()
     elif(len(p)==2):
         p[0]=p[1]
@@ -1391,9 +1396,10 @@ def p_ExprCaseClause(p):
     p[0]=node()
     if(len(p[3].expTList)>1):
         raise NameError("Complex types not allowed in switch", p.lineno(1))
-    if(p[3].expTList[0][0]!="int" or p[3].expTList[0][0]!="rune" or p[3].expTList[0][0]!="bool"):
+    if(p[3].expTList[0][0]!="int" and p[3].expTList[0][0]!="rune" and p[3].expTList[0][0]!="bool"):
         raise NameError("Only int,bool and runes are allowed in switch")
     if(currentSwitch!=p[3].expTList[0][0]):
+        print(currentSwitch)
         raise NameError("type mismatch in case and switch",p.lineno(1))
     var1=newTemp()
     label1=newLabel()
