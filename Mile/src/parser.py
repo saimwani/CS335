@@ -169,6 +169,16 @@ def newLabel(a=None):
         endFor.append(newl)
     return newl
 
+def newScopeLabel(a=None):
+    global labelCount
+    newl="scopeLabel#"+str(labelCount)
+    labelCount+=1
+    if(a!=None and a==1):
+        startFor.append(newl)
+    if(a!=None and a==2):
+        endFor.append(newl)
+    return newl
+
 def p_SourceFile(p):
     """
     SourceFile : PackageClause SEMICOLON ImportDecl_curl TopLevelDecl_curl
@@ -189,10 +199,20 @@ def p_SourceFile(p):
 def p_OpenS(p):
     "OpenS : "
     openS()
+    p[0]=node()
+    label1=newScopeLabel()
+    scopeTab[currentScope].insert(label1,"label")
+    scopeTab[currentScope].updateList(label1,"presentScope",currentScope)
+    p[0].code.append([label1,":"])
 
 def p_CloseS(p):
     "CloseS : "
     closeS()
+    p[0]=node()
+    label1=newScopeLabel()
+    scopeTab[currentScope].insert(label1,"label")
+    scopeTab[currentScope].updateList(label1,"presentScope",currentScope)
+    p[0].code.append([label1,":"])
 
 def p_OpenStructS(p):
     "OpenStructS : "
@@ -858,8 +878,11 @@ def p_UnaryExpr(p):
             p[0].info["memory"]=0
             var1=newTemp()
             p[0].expList=[var1]
-            p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
-
+            if(p[1].expTList[0][0]=='+' or p[2].expTList[0][0]=='-'):
+                p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
+            else:
+                p[0].code.append([var1,"=",p[1].expTList[0][0],p[2].expList[0]])
+    
 def p_BinaryOp(p):
     """
     BinaryOp : LOR
@@ -949,14 +972,12 @@ def p_PrimaryExpr(p):
         x=checkUse(p[1],'anywhere')
         temp1=scopeTab[x].table[p[1]]["type"]
         if(scopeTab[x].table.get(temp1[0])!=None):
-            if(scopeTab[x].table[temp1[0]]["type"]==["struct"] or scope):
+            if(scopeTab[x].table[temp1[0]]["type"]==["struct"]):
                 var1=newTemp()
                 p[0].code.append([var1,"=", "&",p[1]])
                 p[0].info["deref"]=1
-                p[0].expList.append(var1)
-        if(temp1[0][0:3]=="arr" or temp1[0]=="pointer"):
-            var1=newTemp()
-            p[0].code.append([var1,"=", "&",p[1]])
+                p[0].expList=[var1]
+        elif(temp1[0][0:3]=="arr" or temp1[0]=="pointer"):
             p[0].info["deref"]=1
 
     elif(len(p)==4 and p[2]=='.'):
@@ -1011,6 +1032,12 @@ def p_PrimaryExpr(p):
             raise NameError("Signature mismatch for function", p.lineno(1))
         p[0]=node()
         p[0].expTList=scopeTab[0].table[p[1].info["isID"]]["returns"]
+        if(p[0].expTList[0][0]=="void"):
+            p[0].expList=[]
+        else:
+            for i in range(0,len(p[0].expTList)):
+                var1=newTemp()
+                p[0].expList.append(var1)
         p[0].info["multi_return"]=1
         p[0].info["memory"]=0
 
@@ -1137,7 +1164,10 @@ def p_Statement(p):
               | SwitchStmt
               | ForStmt
     """
-    p[0]=p[1]
+    if(len(p)==1):
+        p[0]=p[1]
+    else:
+        p[0]=p[2]
 
 def p_SimpleStmt(p):
     """
