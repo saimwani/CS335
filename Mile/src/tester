@@ -15,7 +15,10 @@ func abs(ad,ag int, fj,kl float) {
     return 
 }
 func main() {
-    var a *int
+    var a [4][5]int
+    var a1 **int
     var b int
-    b= *a
+    b= a[2][4]
+    a[2][4]=b
+    **a1 = b
 }
