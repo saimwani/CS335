@@ -2,10 +2,9 @@ package main;
 
 import (
 	"fmt";
-	"time";
 );
 
-func myFunc(x,y int) string {
+func myFunc(x,y int) (string) {
 	if (x+y)==5 {
 		return "Correctly Initialized";	
 	} else {
@@ -13,35 +12,31 @@ func myFunc(x,y int) string {
 	};
 };
 
-func myFunc_1(x,y int) string {
-	if (x==1 && y==6) {
+func myFunc_1(x,y int) (string) {
+	if ((x==1) && (y==6)) {
 		return "Correctly Initialized";	
 	} else {
 		return "Incorrect!!";
 	};
 };
 
-func main() chan {
-	fmt.Println("When's Saturday?");
-	today := time.Now().Weekday();
-	switch time.Saturday; {
+func main(){
+	today := 97979;
+    khnik := today<<3
+	switch khnik {
 	case today + 0:
-		fmt.Println("Today.");
 		var x,y int;
 		var z string;
 		x=2;y=3;
 		z=myFunc(x,y);
 	case today + 1:
-		fmt.Println("Tomorrow.");
-		fmt.Println("Today.");
 		var x,y int;
 		var z string;
 		x=1;y=6;
 		z=myFunc_1(x,y);
 	case today + 2:
-		fmt.Println("In two days.");
-		fmt.println("Lazy");
+		is := "sfdf"
 	default:
-		fmt.Println("Too far away.");
+		is:="Too far away."
 	};
 };

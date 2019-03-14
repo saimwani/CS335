@@ -1,14 +1,15 @@
-package main
+package main;
 
-import "fmt"
+import "fmt";
+
+type Vertex struct {
+	Lat, Long float;
+    ac struct *Vertex
+};
 
 
-func main() chan {
-	m = make(map[string]Vertex);
+func main() {
 	var vertex Vertex;
-	vertex.Lat=40.6833
-	vetex.Long=-74.39967
-	m["Bell Labs"] = vertex
-	fmt.Println(m["Bell Labs"]);
-}
-
+	vertex.Lat=40.6833;
+	(*(vertex.ac)).Lat=-74.39967;
+};
