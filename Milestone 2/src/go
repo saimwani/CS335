@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ $# -ne 1 ]; then
+    echo "There should be exactly one argument to compiler"
+    exit
+fi
+python parser.py $1

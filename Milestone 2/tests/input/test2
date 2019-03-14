@@ -1,0 +1,15 @@
+package main;
+
+import "fmt";
+
+type Vertex struct {
+	Lat, Long float;
+    ac struct *Vertex
+};
+
+
+func main() {
+	var vertex Vertex;
+	vertex.Lat=40.6833;
+	(*(vertex.ac)).Lat=-74.39967;
+};

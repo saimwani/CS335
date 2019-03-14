@@ -1,4 +1,4 @@
-import csv
+#TODO constant checking in assignment operations
 import ply.yacc as yacc
 import os
 import pprint
@@ -161,6 +161,7 @@ def newTemp(a=None):
     else:
         newt="vartemp#"+str(tempCount)
         tempCount+=1
+        scopeTab[currentScope].insert(newt,"MemTemporary")
     return newt
 
 def newLabel(a=None):
@@ -181,36 +182,32 @@ def p_SourceFile(p):
     p[0].code+=p[1].code
     p[0].code+=p[3].code
     p[0].code+=p[4].code
-    csv_file = "symTab.csv"
-#   print("-----------------------------------------------------------------------")
-    with open(csv_file, 'w+') as csvfile:
-        for x in range(0,scopeNum+1):
-#           print("Table number",x)
-            writer=csv.writer(csvfile)
-            writer.writerow([])
-            writer.writerow(["Table Number",x])
-            writer.writerow([])
-            writer.writerow(["Parent",x,"=",scopeTab[x].parent])
-            writer.writerow([])
-            for key,value in scopeTab[x].table.items():
-                writer.writerow([key,value])
-#           pprint.pprint(scopeTab[x].table)
-#           print("-----------------------------------------------------------------------")
-#   print("#############################################################################")
-    f=open('code.txt',"w")
+    print("-----------------------------------------------------------------------")
+    for x in range(0,scopeNum+1):
+        print("Table number",x)
+        pprint.pprint(scopeTab[x].table)
+        print("-----------------------------------------------------------------------")
+    print("#############################################################################")
     for i in range(0,len(p[0].code)):
-        y=""
-        for x in p[0].code[i]:
-            y=y+" "+str(x)
-        f.write(y+'\n')
+        print(p[0].code[i])
 
 def p_OpenS(p):
     "OpenS : "
     openS()
+    p[0]=node()
+    label1=newScopeLabel()
+    scopeTab[currentScope].insert(label1,"label")
+    scopeTab[currentScope].updateList(label1,"presentScope",currentScope)
+    p[0].code.append([label1,":"])
 
 def p_CloseS(p):
     "CloseS : "
     closeS()
+    p[0]=node()
+    label1=newScopeLabel()
+    scopeTab[currentScope].insert(label1,"label")
+    scopeTab[currentScope].updateList(label1,"presentScope",currentScope)
+    p[0].code.append([label1,":"])
 
 def p_OpenStructS(p):
     "OpenStructS : "
@@ -322,9 +319,7 @@ def p_ConstSpec(p):
             raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
         else:
             if(isinstance(p[2],str)):
-                var1=newTemp(1)
                 scopeTab[currentScope].insert(x,[p[2]])
-                scopeTab[currentScope].updateList(x,"tmp",var1)
                 scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
                 offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
             scopeTab[currentScope].updateList(x,'constant',True)
@@ -337,7 +332,7 @@ def p_ConstSpec(p):
             raise ("Mismatch of type for "+p[1].idList[i])
 
     for i in range(0,len(p[1].idList)):
-        temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
+        temp=[p[1].idList[i],"="]
         if(p[4].info["dereflist"][i]==1):
             temp.append("*")
         temp.append(p[4].expList[i])
@@ -457,15 +452,11 @@ def p_VarSpec(p):
                 raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
             else:
                 if(isinstance(p[2],str)):
-                    var1=newTemp(1)
                     scopeTab[currentScope].insert(x,[p[2]])
-                    scopeTab[currentScope].updateList(x,"tmp",var1)
                     scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
                     offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
                 else:
-                    var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
-                    scopeTab[currentScope].updateList(x,"tmp",var1)
                     scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
                     offsetList[currentScope]+=p[2].info["typesize"]
 
@@ -478,7 +469,7 @@ def p_VarSpec(p):
         p[0]=node()
         p[0].code=p[1].code+p[4].code
         for i in range(0,len(p[1].idList)):
-            temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
+            temp=[p[1].idList[i],"="]
             if(p[4].info["dereflist"][i]==1):
                 temp.append("*")
             temp.append(p[4].expList[i])
@@ -494,15 +485,13 @@ def p_VarSpec(p):
                 raise NameError("Auto assignment of only basic types allowed",p.lineno(1))
             if(checkUse(p[1].idList[i],'redeclaration')==True):
                 raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
-            var1=newTemp(1)
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
-            scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
-            scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentScope])
+            scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
             offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
             p[0]=node()
             p[0].code=p[1].code+p[3].code
             for i in range(0,len(p[1].idList)):
-                temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
+                temp=[p[1].idList[i],"="]
                 if(p[3].info["dereflist"][i]==1):
                     temp.append("*")
                 temp.append(p[3].expList[i])
@@ -551,6 +540,7 @@ def p_TypeLit(p):
     """
     TypeLit : ArrayType
             | PointerType
+            | SliceType
     """
     p[0]=p[1]
 
@@ -572,6 +562,22 @@ def p_ArrayType(p):
         p[0].type.append("arr"+p[2])
         p[0].type+=p[4].type
         p[0].info["typesize"]=temp*p[4].info["typesize"]
+
+def p_SliceType(p):
+    """
+    SliceType : LBRACK RBRACK Type
+              | LBRACK RBRACK ID
+    """
+    if(isinstance(p[3],str) and not p[3] in scopeTab[currentScope].typeList):
+        raise NameError("Invalid type of identifier "+p[3], p.lineno(1))
+    if(isinstance(p[4],str)):
+        p[0]=node()
+        p[0].type.append("slice")
+        p[0].type.append(p[3])
+    else:
+        p[0]=node()
+        p[0].type.append("slice")
+        p[0].type+=p[3].type
 
 def p_StructType(p):
     """
@@ -762,28 +768,20 @@ def p_ParameterDecl(p):
                     raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
             else:
                 if(isinstance(p[2],str)):
-                    var1=newTemp(1)
                     scopeTab[currentScope].insert(x,[p[2]])
-                    scopeTab[currentScope].updateList(x,"tmp",var1)
                     p[0].idList.append([p[2]])
                 else:
-                    var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
-                    scopeTab[currentScope].updateList(x,"tmp",var1)
                     p[0].idList.append(p[2].type)
     else:
         if(checkUse(p[1],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
         else:
             if(isinstance(p[2],str)):
-                var1=newTemp(1)
                 scopeTab[currentScope].insert(p[1], [p[2]])
-                scopeTab[currentScope].updateList(p[1],"tmp",var1)
                 p[0].idList.append([p[2]])
             else:
-                var1=newTemp(1)
                 scopeTab[currentScope].insert(p[1], p[2].type)
-                scopeTab[currentScope].updateList(p[1],"tmp",var1)
                 p[0].idList.append(p[2].type)
 
 
@@ -965,8 +963,10 @@ def p_PrimaryExpr(p):
                 | PrimaryExpr DOT ID
                 | LPAREN Expression RPAREN
                 | PrimaryExpr Index
+                | PrimaryExpr Slice
                 | PrimaryExpr Arguments
     """
+    #Slices isn't implememted indefinitely
     if(len(p)==2 and not isinstance(p[1],str)):
         p[0]=p[1]
         p[0].info["memory"]=0
@@ -978,16 +978,13 @@ def p_PrimaryExpr(p):
         p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
+        p[0].expList=[p[1]]
         x=checkUse(p[1],'anywhere')
         temp1=scopeTab[x].table[p[1]]["type"]
-        if(temp1!=["func"]):
-            p[0].expList=[scopeTab[checkUse(p[1],'anywhere')].table[p[1]]["tmp"]]
-        else:
-            p[0].expList=["func"]
         if(scopeTab[x].table.get(temp1[0])!=None):
             if(scopeTab[x].table[temp1[0]]["type"]==["struct"]):
                 var1=newTemp()
-                p[0].code.append([var1,"=", "&",scopeTab[checkUse(p[1],'anywhere')].table[p[1]]["tmp"]])
+                p[0].code.append([var1,"=", "&",p[1]])
                 p[0].info["deref"]=1
                 p[0].expList=[var1]
         elif(temp1[0][0:3]=="arr" or temp1[0]=="pointer"):
@@ -1063,6 +1060,17 @@ def p_Index(p):
     p[0]=p[2]
     p[0].info["index"]=1
 
+def p_Slice(p):
+    """
+    Slice : LBRACK Expression COLON Expression RBRACK
+          | LBRACK COLON Expression RBRACK
+          | LBRACK Expression COLON RBRACK
+          | LBRACK COLON RBRACK
+          | LBRACK Expression COLON Expression COLON Expression RBRACK
+          | LBRACK COLON Expression COLON Expression RBRACK
+    """
+    #to be done later
+
 def p_Arguments(p):
     """
     Arguments : LPAREN RPAREN
@@ -1077,6 +1085,14 @@ def p_Arguments(p):
         p[0]=p[2]
         p[0].info["arguments"]=1
         p[0].expTList=p[2].expTList
+
+#def p_Conversion(p):
+#    """
+#    Conversion : TYPECAST Type LPAREN Expression COMMA RPAREN
+#               | TYPECAST Type LPAREN Expression RPAREN
+#               | TYPECAST ID LPAREN Expression COMMA RPAREN
+#               | TYPECAST ID LPAREN Expression RPAREN
+#    """
 
 def p_Literal(p):
     """
@@ -1146,10 +1162,13 @@ def p_StringLit(p):
 def p_Statement(p):
     """
     Statement : Declaration
+              | LabelledStmt
               | SimpleStmt
               | ReturnStmt
               | BreakStmt
               | ContinueStmt
+              | GotoStmt
+              | FallthroughStmt
               | IfStmt
               | OpenS Block CloseS
               | SwitchStmt
@@ -1214,11 +1233,13 @@ def p_Assignment(p):
     p[0]=node()
     for i in range(0,len(p[3].expTList)):
         if(p[2].info["op"]=="="):
+            # Looks like it should be p[1].expTList[i][0] not p[3]....
             if( not (p[1].expTList[i][0] in basicTypes or p[1].expTList[i][0]=="pointer")):
-                raise NameError ("Invalid Assignment",p.lineno(1))
+                print(p[1].expTList[i][0],p[3].expTList[i][0])
+                raise NameError ("Invalid Assignment")
         else:
             if(p[1].expTList[i][0] not in basicTypes):
-                raise NameError ("Invalid Assignment",p.lineno(1))
+                raise NameError ("Invalid Assignment")
     if(p[1].info["memory"]==0):
         raise NameError("Assignment not allowed for this expression list", p.lineno(1))
     if(len(p[1].expTList) != len(p[3].expTList)):
@@ -1266,8 +1287,13 @@ def p_AssignOp(p):
              | ASSIGN
     """
     p[0]=node()
-    p[0].expTList.append([p[1]])
+    p[0].expTList.append(p[1])
     p[0].info["op"]=p[1]
+
+def p_LabelledStmt(p):
+    """
+    LabelledStmt : ID COLON Statement
+    """
 
 def p_ReturnStmt(p):
     """
@@ -1300,6 +1326,16 @@ def p_ContinueStmt(p):
     p[0]=node()
     p[0].code.append(["goto",startFor[-1]])
 
+def p_GotoStmt(p):
+    """
+    GotoStmt : GOTO ID
+    """
+
+def p_FallthroughStmt(p):
+    """
+    FallthroughStmt : FALLTHROUGH
+    """
+
 def p_ShortVarDecl(p):
     """
     ShortVarDecl : IdentifierList DEFINE ExpressionList
@@ -1314,19 +1350,19 @@ def p_ShortVarDecl(p):
             raise NameError("Auto assignment of only basic types allowed",p.lineno(1))
         if(checkUse(p[1].idList[i],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
-        var1=newTemp(1)
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
-        scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
         scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentScope])
         offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
     p[0]=node()
     p[0].code=p[3].code
+    #DerefList Added
     for i in range(0,len(p[1].idList)):
-        temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
+        temp=[p[1].idList[i],"="]
         if(p[3].info["dereflist"][i]==1):
             temp.append("*")
         temp.append(p[3].expList[i])
         p[0].code.append(temp)
+        #p[0].code.append([p[1].idList[i],"=",p[3].expList[i]])
     p[0].expTList=[]
 
 def p_IfStmt(p):
