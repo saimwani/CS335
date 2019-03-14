@@ -871,9 +871,15 @@ def p_UnaryExpr(p):
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
         p[0].code=p[2].code
         if(p[1].expTList[0][0]=="*"):
+            print(p[2].expList,p.lineno(1))
             p[0].info["memory"]=1
             p[0].info["deref"]=1
-            p[0].expList[0]=p[2].expList[0]
+            if(p[2].expTList[0][1]=="pointer"):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[2].expList[0]])
+                p[0].expList=[var1]
+            else:
+                p[0].expList=p[2].expList
         else:
             p[0].info["memory"]=0
             var1=newTemp()
@@ -1164,7 +1170,7 @@ def p_Statement(p):
               | SwitchStmt
               | ForStmt
     """
-    if(len(p)==1):
+    if(len(p)==2):
         p[0]=p[1]
     else:
         p[0]=p[2]
