@@ -871,12 +871,21 @@ def p_UnaryExpr(p):
         p[0].expTList.append(checkUnOprn(p[1].expTList[0], p[2].expTList[0]))
         p[0].code=p[2].code
         if(p[1].expTList[0][0]=="*"):
-            print(p[2].expList,p.lineno(1))
             p[0].info["memory"]=1
             p[0].info["deref"]=1
             if(p[2].expTList[0][1]=="pointer"):
-                var1=newTemp()
+                var1=newtemp()
                 p[0].code.append([var1,"=","*",p[2].expList[0]])
+                p[0].expList=[var1]
+            else:
+                p[0].expList=p[2].expList
+        elif(p[1].expTList[0][0]=="&"):
+            p[0].info["memory"]=0
+            if(p[2].info.get("deref")==None):
+                if(p[2].info["memory"]==0):
+                    raise NameError("Can't get address",p.lineno(1))
+                var1=newtemp()
+                p[0].code.append([var1,"=","&",p[2].expList[0]])
                 p[0].expList=[var1]
             else:
                 p[0].expList=p[2].expList
@@ -884,7 +893,7 @@ def p_UnaryExpr(p):
             p[0].info["memory"]=0
             var1=newTemp()
             p[0].expList=[var1]
-            if(p[1].expTList[0][0]=='+' or p[2].expTList[0][0]=='-'):
+            if(p[1].expTList[0][0]=='+' or p[1].expTList[0][0]=='-'):
                 p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
             else:
                 p[0].code.append([var1,"=",p[1].expTList[0][0],p[2].expList[0]])
@@ -1230,10 +1239,10 @@ def p_Assignment(p):
     for i in range(0,len(p[3].expTList)):
         if(p[2].info["op"]=="="):
             if( not (p[1].expTList[i][0] in basicTypes or p[3].expTList[i][0]=="pointer")):
-                raise ("Invalid Assignment")
+                raise NameError ("Invalid Assignment")
         else:
             if(p[1].expTList[i][0] not in basicTypes):
-                raise ("Invalid Assignment")
+                raise NameError ("Invalid Assignment")
     if(p[1].info["memory"]==0):
         raise NameError("Assignment not allowed for this expression list", p.lineno(1))
     if(len(p[1].expTList) != len(p[3].expTList)):
@@ -1250,7 +1259,7 @@ def p_Assignment(p):
             if(temp==None):
                 raise NameError("Invalid operation for this type",p.lineno(1))
         if(temp!=None):
-            p[2].expTList[0][0]+=temp
+            p[2].expTList[0]=[p[2].expTList[0][0]+temp[0]]
         if(p[1].info["dereflist"][i]==1):
             if(p[3].info["dereflist"][i]==1):
                 var1=newTemp()
@@ -1442,8 +1451,9 @@ def p_ExprCaseClause(p):
         raise NameError("type mismatch in case and switch",p.lineno(1))
     var1=newTemp()
     label1=newLabel()
+    p[0].code=p[3].code
     p[0].code.append([var1, "=", switchExp, '-'+p[3].expTList[0][0], p[3].expList[0]])
-    p[0].code.append([var1,"=",var1,"==",'0'])
+    p[0].code.append([var1,"=",var1,"=="+p[3].expTList[0][0],'0'])
     p[0].code.append(["ifnot", var1, "goto", label1 ])
     p[0].code+=p[5].code
     p[0].code.append(["goto", endFor[-1]])
