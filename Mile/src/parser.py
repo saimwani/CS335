@@ -1154,11 +1154,49 @@ def p_Statement(p):
               | OpenS Block CloseS
               | SwitchStmt
               | ForStmt
+              | PrintStmt
+              | ScanStmt
     """
     if(len(p)==2):
         p[0]=p[1]
     else:
         p[0]=p[2]
+
+def p_PrintStmt(p):
+    """
+    PrintStmt : PRINT ExpressionList 
+    """
+    p[0]=node()
+    p[0].code=p[2].code
+    for i in len(0,p[2].expTList):
+        if( not (p[2].expTList[i][0] in basicTypes)):
+            raise NameError ("We can only print the basic types",p.lineno(1))
+
+        if(p[2].info["dereflist"][i]==1):
+            var1=newTemp()
+            p[0].code.append([var1,"=","*",p[2].expList[i]])
+            p[0].code.append(['print_'+p[2].expTList[i],var1])
+        else:
+            p[0].code.append(['print_'+p[2].expTList[i],p[2].expList[i]])
+
+def p_ScanStmt(p):
+    """
+    ScanStmt : SCAN ExpressionList
+    """
+    p[0]=node()
+    p[0].code=p[2].code
+    for i in len(0,p[2].expTList):
+        if( not (p[2].expTList[i][0] in basicTypes)):
+            raise NameError ("We can only scan the basic types",p.lineno(1))
+
+        if(p[2].info["dereflist"][i]==1):
+            var1=newTemp()
+            p[0].code.append(['scan_'+p[2].expTList[i],p[2].expList[i]])
+        elif(p[2].expList[i][0:2]=="va"):
+            p[0].code.append(['vscan_'+p[2].expTList[i],p[2].expList[i]])
+        else:
+            raise NameError("We can only scan to memory location",p.lineno(1))
+
 
 def p_SimpleStmt(p):
     """
