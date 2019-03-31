@@ -1,0 +1,27 @@
+ exam :
+ temp#8 = vartemp#3 +int vartemp#4
+ temp#9 = vartemp#3 -int vartemp#4
+ temp#10 = temp#8 *int temp#9
+ vartemp#6 = temp#10
+ temp#11 = vartemp#5 *float vartemp#5
+ temp#12 = temp#11 *float vartemp#5
+ temp#13 = temp#12 *float vartemp#5
+ temp#14 = temp#13 *float vartemp#5
+ temp#15 = temp#14 *float vartemp#5
+ vartemp#7 = temp#15
+ return
+ main :
+ temp#17 = & vartemp#16
+ temp#18 = temp#17 +int 0
+ * temp#18 = 40.6833
+ temp#19 = & vartemp#16
+ temp#20 = temp#19 +int 8
+ temp#21 = temp#20 +int 0
+ temp#22 = -float 74.39967
+ * temp#21 = temp#22
+ startf exam
+ param 1
+ param 2
+ param 4.0
+ call exam
+ return

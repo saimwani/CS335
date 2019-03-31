@@ -737,7 +737,7 @@ def p_TypeList(p):
     if(len(p)==2):
         if(isinstance(p[1],str)):
             p[0].idList.append([p[1]])
-            p[0].expList.append(scopeTab[currentScope].typeSList[p[1]])  #mag 
+            p[0].expList.append(scopeTab[currentScope].typeSList[p[1]])  #mag
         else:
             p[0].idList.append(p[1].type)
             p[0].expList.append(p[1].info["typesize"])
@@ -769,7 +769,7 @@ def p_Parameters(p):
         parSum=0
         n=len(p[2].idList)
         for i in range(0,len(p[2].idList)):
-            argOffset-=p[2].expList[n-i-1]  #mag 
+            argOffset-=p[2].expList[n-i-1]  #mag
             scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  #mag
             parSum+=p[2].expList[i]
         scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
@@ -1108,7 +1108,7 @@ def p_PrimaryExpr(p):
                 p[0].expList.append(var1)
         p[0].info["multi_return"]=1
         p[0].info["memory"]=0
-        p[0].code.append(["startf",p[1]])
+        p[0].code.append(["startf",p[1].info["isID"]])
         for i in range(0,len(p[2].expList)):
             if(p[2].info["dereflist"][i]==1):
                 var1=newTemp()
@@ -1116,7 +1116,7 @@ def p_PrimaryExpr(p):
                 p[0].code.append(["param",var1])
             else:
                 p[0].code.append(["param",p[2].expList[i]])
-        p[0].code.append(["call",p[1]])
+        p[0].code.append(["call",p[1].info["isID"]])
 
 def p_Index(p):
     """
