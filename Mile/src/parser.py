@@ -1232,7 +1232,7 @@ def p_PrintStmt(p):
     """
     p[0]=node()
     p[0].code=p[2].code
-    for i in len(0,p[2].expTList):
+    for i in range(0,len(p[2].expTList)):
         if( not (p[2].expTList[i][0] in basicTypes)):
             raise NameError ("We can only print the basic types",p.lineno(1))
 
@@ -1249,7 +1249,7 @@ def p_ScanStmt(p):
     """
     p[0]=node()
     p[0].code=p[2].code
-    for i in len(0,p[2].expTList):
+    for i in range(0,len(p[2].expTList)):
         if( not (p[2].expTList[i][0] in basicTypes)):
             raise NameError ("We can only scan the basic types",p.lineno(1))
 
