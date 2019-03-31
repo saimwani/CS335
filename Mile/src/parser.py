@@ -737,7 +737,7 @@ def p_TypeList(p):
     if(len(p)==2):
         if(isinstance(p[1],str)):
             p[0].idList.append([p[1]])
-            p[0].expList.append(p[0].typeSList[p[1]])
+            p[0].expList.append(scopeTab[currentScope].typeSList[p[1]])  #mag 
         else:
             p[0].idList.append(p[1].type)
             p[0].expList.append(p[1].info["typesize"])
