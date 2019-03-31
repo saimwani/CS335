@@ -769,8 +769,8 @@ def p_Parameters(p):
         parSum=0
         n=len(p[2].idList)
         for i in range(0,len(p[2].idList)):
-            argOffset-=p[2].expList[n-i]
-            scopeTab[currentScope].updateList(p[2].idList[n-i],"offset",argOffset)
+            argOffset-=p[2].expList[n-i-1]  #mag 
+            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  #mag
             parSum+=p[2].expList[i]
         scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
 
@@ -813,7 +813,7 @@ def p_ParameterDecl(p):
                     scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
                     p[0].expTList.append([p[2]])
-                    p[0].expList.append(p[0].typeSList[p[2]])
+                    p[0].expList.append(scopeTab[currentScope].typeSList[p[2]])
                 else:
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
@@ -832,7 +832,7 @@ def p_ParameterDecl(p):
                 scopeTab[currentScope].insert(var1,p[1])
                 scopeTab[currentScope].updateList(p[1],"tmp",var1)
                 p[0].expTList.append([p[2]])
-                p[0].expList.append(p[0].typeSList[p[2]])
+                p[0].expList.append(scopeTab[currentScope].typeSList[p[2]])
             else:
                 var1=newTemp(1)
                 scopeTab[currentScope].insert(p[1], p[2].type)
