@@ -1,0 +1,55 @@
+
+Table Number,0
+
+Parent,0,=,
+
+exam,"{'takes': [['int'], ['int'], ['float']], '#total_parSize': 12, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'type': ['func']}"
+Vertex,"{'ac': ['pointer', 'Vertex'], 'offset Lat': 0, 'offset ac': 8, 'Long': ['float'], 'offset Long': 4, 'Lat': ['float'], 'type': ['struct']}"
+vartemp#1,{'type': 'x'}
+vartemp#2,{'type': 'y'}
+y,"{'tmp': 'vartemp#2', 'type': ['int'], 'offset': 4}"
+x,"{'tmp': 'vartemp#1', 'type': ['int'], 'offset': 0}"
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#6', 'type': ['int'], 'offset': 0}"
+#total_size,{'type': 8}
+b,"{'tmp': 'vartemp#7', 'type': ['float'], 'offset': 4}"
+exam,{'type': ['func']}
+temp#15,{'type': 'Temporary'}
+temp#11,{'type': 'Temporary'}
+temp#14,{'type': 'Temporary'}
+Vertex,"{'ac': ['pointer', 'Vertex'], 'offset Lat': 0, 'offset ac': 8, 'Long': ['float'], 'offset Long': 4, 'Lat': ['float'], 'type': ['struct']}"
+temp#10,{'type': 'Temporary'}
+temp#13,{'type': 'Temporary'}
+temp#12,{'type': 'Temporary'}
+temp#9,{'type': 'Temporary'}
+temp#8,{'type': 'Temporary'}
+vartemp#3,{'type': 'x'}
+vartemp#5,{'type': 'z'}
+vartemp#4,{'type': 'y'}
+vartemp#7,{'type': 'b'}
+vartemp#6,{'type': 'a'}
+y,"{'tmp': 'vartemp#4', 'type': ['int'], 'offset': -8}"
+x,"{'tmp': 'vartemp#3', 'type': ['int'], 'offset': -12}"
+z,"{'tmp': 'vartemp#5', 'type': ['float'], 'offset': -4}"
+
+Table Number,2
+
+Parent,2,=,0
+
+temp#20,{'type': 'Temporary'}
+temp#21,{'type': 'Temporary'}
+temp#22,{'type': 'Temporary'}
+temp#19,{'type': 'Temporary'}
+exam,{'type': ['func']}
+Vertex,"{'ac': ['pointer', 'Vertex'], 'offset Lat': 0, 'offset ac': 8, 'Long': ['float'], 'offset Long': 4, 'Lat': ['float'], 'type': ['struct']}"
+temp#17,{'type': 'Temporary'}
+vertex,"{'tmp': 'vartemp#16', 'type': ['Vertex'], 'offset': 0}"
+#total_size,{'type': 12}
+vartemp#16,{'type': 'vertex'}
+main,{'type': ['func']}
+temp#18,{'type': 'Temporary'}

@@ -50,7 +50,9 @@ labelCount=1
 structSymbolList=[]
 startFor=[]
 endFor=[]
+currentFScope=0
 switchExp=""
+baseOffset=0
 
 def checkUse(ident,checkWhat):
     if(checkWhat=='redeclaration'):
@@ -324,9 +326,10 @@ def p_ConstSpec(p):
             if(isinstance(p[2],str)):
                 var1=newTemp(1)
                 scopeTab[currentScope].insert(x,[p[2]])
+                scopeTab[currentScope].insert(var1,x)
                 scopeTab[currentScope].updateList(x,"tmp",var1)
-                scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
-                offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
+                scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+                offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[2]]
             scopeTab[currentScope].updateList(x,'constant',True)
 
     if(len(p[1].idList) != len(p[4].expTList)):
@@ -459,15 +462,17 @@ def p_VarSpec(p):
                 if(isinstance(p[2],str)):
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,[p[2]])
+                    scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
-                    offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[2]]
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+                    offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[2]]
                 else:
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
+                    scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentScope])
-                    offsetList[currentScope]+=p[2].info["typesize"]
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+                    offsetList[currentFScope]+=p[2].info["typesize"]
 
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].expTList)):
@@ -496,9 +501,10 @@ def p_VarSpec(p):
                 raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
             var1=newTemp(1)
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
+            scopeTab[currentScope].insert(var1,p[1].idList[i])
             scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
-            scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentScope])
-            offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+            scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
+            offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
             p[0]=node()
             p[0].code=p[1].code+p[3].code
             for i in range(0,len(p[1].idList)):
@@ -510,11 +516,22 @@ def p_VarSpec(p):
 
 def p_FunctionDecl(p):
     """
-    FunctionDecl : FUNC FuncName OpenS Signature Block CloseS
+    FunctionDecl : FUNC SetBase FuncName OpenS Signature Block CloseBase CloseS
     """
     p[0]=node()
-    p[0].code=p[2].code+p[4].code
-    p[0].code+=p[5].code
+    p[0].code=p[3].code+p[5].code
+    p[0].code+=p[6].code
+    p[0].code.append(["return"])
+
+def p_SetBase(p):
+    "SetBase : "
+    global currentFScope
+    global scopeNum
+    currentFScope=scopeNum+1
+
+def p_CloseBase(p):
+    "CloseBase : "
+    scopeTab[currentScope].insert("#total_size",offsetList[currentFScope])
 
 def p_FuncName(p):
     """
@@ -693,8 +710,17 @@ def p_Result(p):
     p[0]=node()
     if(len(p)==1):
         scopeTab[0].updateList(currentFunc,"returns",[["void"]])
+        scopeTab[0].updateList(currentFunc,"#total_retSize",0)
+        scopeTab[0].updateList(currentFunc,"retSizeList",[])
     else:
         scopeTab[0].updateList(currentFunc,"returns",p[2].idList)
+        total_sum=0
+        retList=[]
+        for i in range(0,len(p[2].idList)):
+            retList.append(total_sum)
+            total_sum+=p[2].expList[i]
+        scopeTab[0].updateList(currentFunc,"#total_retSize",total_sum)
+        scopeTab[0].updateList(currentFunc,"retSizeList",retList)
 
 def p_TypeList(p):
     """
@@ -711,15 +737,21 @@ def p_TypeList(p):
     if(len(p)==2):
         if(isinstance(p[1],str)):
             p[0].idList.append([p[1]])
+            p[0].expList.append(scopeTab[currentScope].typeSList[p[1]])  #mag
         else:
             p[0].idList.append(p[1].type)
+            p[0].expList.append(p[1].info["typesize"])
     else:
         if(isinstance(p[3],str)):
             p[0].idList=p[1].idList
+            p[0].expList=p[1].expList
             p[0].idList.append([p[3]])
+            p[0].expList.append(p[0].typeSList[p[3]])
         else:
             p[0].idList=p[1].idList
+            p[0].expList=p[1].expList
             p[0].idList.append(p[3].type)
+            p[0].expList.append(p[3].info["typesize"])
 
 def p_Parameters(p):
     """
@@ -730,8 +762,17 @@ def p_Parameters(p):
     p[0]=node()
     if(len(p)==3):
         scopeTab[0].updateList(currentFunc,"takes",[["void"]])
+        scopeTab[0].updateList(currentFunc,"#total_parSize",0)
     else:
-        scopeTab[0].updateList(currentFunc,"takes",p[2].idList)
+        scopeTab[0].updateList(currentFunc,"takes",p[2].expTList)
+        argOffset=0
+        parSum=0
+        n=len(p[2].idList)
+        for i in range(0,len(p[2].idList)):
+            argOffset-=p[2].expList[n-i-1]  #mag
+            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  #mag
+            parSum+=p[2].expList[i]
+        scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
 
 def p_ParameterList(p):
     """
@@ -744,6 +785,10 @@ def p_ParameterList(p):
     else:
         p[0].idList=p[1].idList
         p[0].idList+=(p[3].idList)
+        p[0].expTList=p[1].expTList
+        p[0].expTList+=(p[3].expTList)
+        p[0].expList=p[1].expList
+        p[0].expList+=(p[3].expList)
 
 def p_ParameterDecl(p):
     """
@@ -757,6 +802,7 @@ def p_ParameterDecl(p):
 
     p[0]=node()
     if(not isinstance(p[1],str)):
+        p[0].idList=p[1].idList
         for x in p[1].idList:
             if(checkUse(x,'redeclaration')==True):
                     raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
@@ -764,27 +810,36 @@ def p_ParameterDecl(p):
                 if(isinstance(p[2],str)):
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,[p[2]])
+                    scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    p[0].idList.append([p[2]])
+                    p[0].expTList.append([p[2]])
+                    p[0].expList.append(scopeTab[currentScope].typeSList[p[2]])
                 else:
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
+                    scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    p[0].idList.append(p[2].type)
+                    p[0].expTList.append(p[2].type)
+                    p[0].expList.append(p[2].info["typesize"])
     else:
         if(checkUse(p[1],'redeclaration')==True):
             raise NameError('Redeclaration of identifier:'+x, p.lineno(1))
         else:
+            p[0].idList=[p[1]]
             if(isinstance(p[2],str)):
                 var1=newTemp(1)
                 scopeTab[currentScope].insert(p[1], [p[2]])
+                scopeTab[currentScope].insert(var1,p[1])
                 scopeTab[currentScope].updateList(p[1],"tmp",var1)
-                p[0].idList.append([p[2]])
+                p[0].expTList.append([p[2]])
+                p[0].expList.append(scopeTab[currentScope].typeSList[p[2]])
             else:
                 var1=newTemp(1)
                 scopeTab[currentScope].insert(p[1], p[2].type)
+                scopeTab[currentScope].insert(var1,p[1])
                 scopeTab[currentScope].updateList(p[1],"tmp",var1)
-                p[0].idList.append(p[2].type)
+                p[0].expTList.append(p[2].type)
+                p[0].expList.append(p[2].info["typesize"])
 
 
 def p_ParaIdList(p):
@@ -894,7 +949,7 @@ def p_UnaryExpr(p):
                 p[0].code.append([var1,"=",p[1].expTList[0][0]+p[2].expTList[0][0],p[2].expList[0]])
             else:
                 p[0].code.append([var1,"=",p[1].expTList[0][0],p[2].expList[0]])
-    
+
 def p_BinaryOp(p):
     """
     BinaryOp : LOR
@@ -1053,6 +1108,15 @@ def p_PrimaryExpr(p):
                 p[0].expList.append(var1)
         p[0].info["multi_return"]=1
         p[0].info["memory"]=0
+        p[0].code.append(["startf",p[1].info["isID"]])
+        for i in range(0,len(p[2].expList)):
+            if(p[2].info["dereflist"][i]==1):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[2].expList[i]])
+                p[0].code.append(["param",var1])
+            else:
+                p[0].code.append(["param",p[2].expList[i]])
+        p[0].code.append(["call",p[1].info["isID"]])
 
 def p_Index(p):
     """
@@ -1317,6 +1381,18 @@ def p_ReturnStmt(p):
     if(len(p)==3 and not scopeTab[0].table[currentFunc]["returns"]==p[2].expTList):
         raise NameError("The return type for this function doesn't match",p.lineno(1))
     p[0]=node()
+    if(len(p)==2):
+        p[0].code=[ ["return"] ]
+    if(len(p)==3):
+        p[0].code=p[2].code
+        for i in range(0,len(p[2].expList)):
+            if(p[2].info["dereflist"][i]==1):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[2].expList[i]])
+                p[0].code.append(["return",var1])
+            else:
+                p[0].code.append(["return",p[2].expList[i]])
+        p[0].code.append(["return"])
 
 def p_BreakStmt(p):
     """
@@ -1354,9 +1430,10 @@ def p_ShortVarDecl(p):
             raise NameError('Redeclaration of identifier:'+p[1].idList[i], p.lineno(1))
         var1=newTemp(1)
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
+        scopeTab[currentScope].insert(var1,p[1].idList[i])
         scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
-        scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentScope])
-        offsetList[currentScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+        scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
+        offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
     p[0]=node()
     p[0].code=p[3].code
     for i in range(0,len(p[1].idList)):
