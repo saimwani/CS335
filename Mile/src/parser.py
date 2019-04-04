@@ -520,6 +520,8 @@ def p_FunctionDecl(p):
     """
     FunctionDecl : FUNC SetBase FuncName OpenS Signature Block CloseBase CloseS
     """
+    if(p[6].info.get("hasRStmt") is None and  not scopeTab[0].table[currentFunc]["returns"]==[["void"]]):
+        raise NameError ("Function return value is not void, it must return a value", p.lineno(1))
     p[0]=node()
     p[0].code=p[3].code+p[5].code
     p[0].code+=p[6].code
@@ -879,7 +881,8 @@ def p_Statement_curl(p):
     p[0]=node()
     if(len(p)>1):
         p[0].code=p[1].code+p[2].code
-
+        if(p[1].info.get("hasRStmt")!= None or p[2].info.get("hasRStmt")!=None):
+            p[0].info["hasRStmt"]=1
 def p_Expression(p):
     """
     Expression : UnaryExpr
@@ -1390,7 +1393,9 @@ def p_ReturnStmt(p):
     p[0]=node()
     if(len(p)==2):
         p[0].code=[ ["return"] ]
+        p[0].info["hasRStmt"]=1
     if(len(p)==3):
+        p[0].info["hasRStmt"]=1
         p[0].code=p[2].code
         for i in range(0,len(p[2].expList)):
             if(p[2].info["dereflist"][i]==1):
