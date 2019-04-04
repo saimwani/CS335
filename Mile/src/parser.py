@@ -1356,22 +1356,44 @@ def p_Assignment(p):
             temp=checkOprn(p[1].expTList[i],[p[2].expTList[0][0][0:-1]],p[3].expTList[i])
             if(temp==None):
                 raise NameError("Invalid operation for this type",p.lineno(1))
-        if(temp!=None):
-            p[2].expTList[0]=[p[2].expTList[0][0]+temp[0]]
+        # if(temp!=None):
+        #     p[2].expTList[0]=[p[2].expTList[0][0]+temp[0]]
         if(p[1].info["dereflist"][i]==1):
             if(p[3].info["dereflist"][i]==1):
                 var1=newTemp()
                 p[0].code.append([var1,"=","*",p[3].expList[i]])
-                p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],var1])
+                if(p[2].expTList[0][0]=="="):
+                    p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],var1])
+                else:
+                    ops=p[2].expTList[0][0][:-1]
+                    var2=newTemp()
+                    p[0].code.append([var2,"=","*",p[1].expList[i]])
+                    p[0].code.append([var2,"=",var2,ops+temp[0],var1])
+                    p[0].code.append(["*",p[1].expList[i],"=",var2])
             else:
-                p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+                if(p[2].expTList[0][0]=="="):
+                    p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+                else:
+                    ops=p[2].expTList[0][0][:-1]
+                    var2=newTemp()
+                    p[0].code.append([var2,"=","*",p[1].expList[i]])
+                    p[0].code.append([var2,"=",var2,ops+temp[0],p[3].expList[i]])
+                    p[0].code.append(["*",p[1].expList[i],"=",var2])
         else:
             if(p[3].info["dereflist"][i]==1):
                 var1=newTemp()
                 p[0].code.append([var1,"=","*",p[3].expList[i]])
-                p[0].code.append([p[1].expList[i],p[2].expTList[0][0],var1])
+                if(p[2].expTList[0][0]=="="):
+                    p[0].code.append([p[1].expList[i],p[2].expTList[0][0],var1])
+                else:
+                    ops=p[2].expTList[0][0][:-1]
+                    p[0].code.append([p[1].expList[i],"=",p[1].expList[i],ops+temp[0],var1])
             else:
-                p[0].code.append([p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+                if(p[2].expTList[0][0]=="="):
+                    p[0].code.append([p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+                else:
+                    ops=p[2].expTList[0][0][:-1]
+                    p[0].code.append([p[1].expList[i],"=",p[1].expList[i],ops+temp[0],p[3].expList[i]])
     p[0].expTList=[]
 
 def p_AssignOp(p):
