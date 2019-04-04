@@ -775,8 +775,8 @@ def p_Parameters(p):
         parSum=0
         n=len(p[2].idList)
         for i in range(0,len(p[2].idList)):
-            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  
-            argOffset-=p[2].expList[n-i-1]  
+            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)
+            argOffset-=p[2].expList[n-i-1]
             parSum+=p[2].expList[i]
         scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
 
@@ -1238,7 +1238,7 @@ def p_Statement(p):
 
 def p_PrintStmt(p):
     """
-    PrintStmt : PRINT ExpressionList 
+    PrintStmt : PRINT ExpressionList
     """
     p[0]=node()
     p[0].code=p[2].code
@@ -1471,6 +1471,8 @@ def p_IfStmt(p):
         p[0].code.append(["ifnot",p[3].expList[0],"goto",label1])
         p[0].code+=p[4].code
         p[0].code.append([label1,":"])
+        if(p[4].info.get("hasRStmt") is not None):
+            p[0].info["hasRStmt"]=1
     elif(len(p)==8):
         label1=newLabel()
         label2=newLabel()
@@ -1480,6 +1482,8 @@ def p_IfStmt(p):
         p[0].code.append([label1,":"])
         p[0].code+=p[7].code
         p[0].code.append([label2,":"])
+        if(p[4].info.get("hasRStmt") is not None):
+            p[0].info["hasRStmt"]=1
     else:
         label1=newLabel()
         label2=newLabel()
@@ -1489,6 +1493,8 @@ def p_IfStmt(p):
         p[0].code.append([label1,":"])
         p[0].code+=p[8].code
         p[0].code.append([label2,":"])
+        if(p[4].info.get("hasRStmt") != None or p[8].info.get("hasRStmt") != None):
+            p[0].info["hasRStmt"]=1
 
 def p_SwitchStmt(p):
     """
@@ -1499,6 +1505,8 @@ def p_SwitchStmt(p):
     p[0].code=p[2].code+p[5].code
     p[0].code.append([endFor[-1],":"])
     endFor=endFor[0:-1]
+    if(p[5].info.get("hasRStmt") != None):
+        p[0].info["hasRStmt"]=1
 
 
 def p_ExpressionName(p):
@@ -1528,6 +1536,8 @@ def p_ExprCaseClause_curl(p):
     else:
         p[0]=p[1]
         p[0].code+=p[2].code
+        if(p[1].info.get("hasRStmt") != None or p[2].info.get("hasRStmt") != None):
+            p[0].info["hasRStmt"]=1
 
 
 def p_ExprCaseClause(p):
@@ -1552,6 +1562,8 @@ def p_ExprCaseClause(p):
     p[0].code+=p[5].code
     p[0].code.append(["goto", endFor[-1]])
     p[0].code.append([label1, ":"])
+    if(p[5].info.get("hasRStmt") != None):
+        p[0].info["hasRStmt"]=1
 
 def p_DefCaseClause(p):
     """
@@ -1559,6 +1571,8 @@ def p_DefCaseClause(p):
     """
     p[0]=node()
     p[0].code=p[4].code
+    if(p[4].info.get("hasRStmt") != None):
+        p[0].info["hasRStmt"]=1
 
 def p_ForStmt(p):
     """
@@ -1572,6 +1586,8 @@ def p_ForStmt(p):
         p[0].code=p[4].code
         p[0].code+=p[5].code
         p[0].code+=p[4].info["forLabelPass"]
+        if(p[5].info.get("hasRStmt") != None):
+            p[0].info["hasRStmt"]=1
     elif(len(p)==8):
         if(len(p[4].expTList)>1 or p[4].expTList[0][0]!="bool"):
             raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
@@ -1584,12 +1600,16 @@ def p_ForStmt(p):
         p[0].code+=p[5].code
         p[0].code.append(["goto",label2])
         p[0].code.append([label1,":"])
+        if(p[5].info.get("hasRStmt") != None):
+            p[0].info["hasRStmt"]=1
     else:
         label1=newLabel()
         p[0].code.append([startFor[-1],":"])
         p[0].code.append([label1,":"])
         p[0].code+=p[4].code
         p[0].code.append(["goto",label1])
+        if(p[4].info.get("hasRStmt") != None):
+            p[0].info["hasRStmt"]=1
     p[0].code.append([endFor[-1],":"])
     startFor=startFor[0:-1]
     endFor=endFor[0:-1]
