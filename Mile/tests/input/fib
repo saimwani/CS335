@@ -14,7 +14,7 @@ func FibonacciRecursion(n int) (int) {
 func main() {
 
 
-	v:=FibonacciRecursion(5)
-	
+	f:=FibonacciRecursion(5)
+	print(f)
 
 }
