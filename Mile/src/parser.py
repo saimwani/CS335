@@ -74,7 +74,7 @@ def openS():
     scopeNum+=1
     currentScope=scopeNum
     scopeList.append(currentScope)
-    offsetList.append(0)
+    offsetList.append(4)
     scopeTab[currentScope]=symbolTable()
     scopeTab[currentScope].assignParent(prevScope)
     scopeTab[currentScope].typeList=scopeTab[prevScope].typeList
@@ -371,7 +371,8 @@ def p_ExpressionList(p):
         p[0].info["dereflist"]=[]
         if(p[1].info.get("deref")==None):
             p[0].expList+=p[1].expList
-            p[0].info["dereflist"]=[0]
+            for i in range(0,len(p[1].expList)):
+                p[0].info["dereflist"].append(0)
         else:
             p[0].expList+=p[1].expList
             p[0].info["dereflist"]=[1]
@@ -386,7 +387,8 @@ def p_ExpressionList(p):
         p[0].info["dereflist"]=p[1].info["dereflist"]
         if(p[3].info.get("deref")==None):
             p[0].expList+=p[3].expList
-            p[0].info["dereflist"].append(0)
+            for i in range(0,len(p[3].expList)):
+                p[0].info["dereflist"].append(0)
         else:
             p[0].expList+=p[3].expList
             p[0].info["dereflist"].append(1)
@@ -714,12 +716,14 @@ def p_Result(p):
         scopeTab[0].updateList(currentFunc,"retSizeList",[])
     else:
         scopeTab[0].updateList(currentFunc,"returns",p[2].idList)
-        total_sum=0
+        total_sum=-8- scopeTab[0].table[currentFunc]["#total_parSize"]
         retList=[]
+        re_sum=0
         for i in range(0,len(p[2].idList)):
             retList.append(total_sum)
-            total_sum+=p[2].expList[i]
-        scopeTab[0].updateList(currentFunc,"#total_retSize",total_sum)
+            total_sum-=p[2].expList[i]
+            re_sum+=p[2].expList[i]
+        scopeTab[0].updateList(currentFunc,"#total_retSize",re_sum)
         scopeTab[0].updateList(currentFunc,"retSizeList",retList)
 
 def p_TypeList(p):
@@ -746,7 +750,7 @@ def p_TypeList(p):
             p[0].idList=p[1].idList
             p[0].expList=p[1].expList
             p[0].idList.append([p[3]])
-            p[0].expList.append(p[0].typeSList[p[3]])
+            p[0].expList.append(scopeTab[currentScope].typeSList[p[3]])
         else:
             p[0].idList=p[1].idList
             p[0].expList=p[1].expList
@@ -765,12 +769,12 @@ def p_Parameters(p):
         scopeTab[0].updateList(currentFunc,"#total_parSize",0)
     else:
         scopeTab[0].updateList(currentFunc,"takes",p[2].expTList)
-        argOffset=0
+        argOffset=-8
         parSum=0
         n=len(p[2].idList)
         for i in range(0,len(p[2].idList)):
-            argOffset-=p[2].expList[n-i-1]  #mag
-            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  #mag
+            scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)  
+            argOffset-=p[2].expList[n-i-1]  
             parSum+=p[2].expList[i]
         scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
 
@@ -1117,6 +1121,9 @@ def p_PrimaryExpr(p):
             else:
                 p[0].code.append(["param",p[2].expList[i]])
         p[0].code.append(["call",p[1].info["isID"]])
+        p[0].code.append(["endf",p[1].info["isID"]])
+        for i in range(0,len(p[0].expList)):
+            p[0].code.append([p[0].expList[i],"=","retval_"+str(i+1)])
 
 def p_Index(p):
     """
@@ -1239,9 +1246,9 @@ def p_PrintStmt(p):
         if(p[2].info["dereflist"][i]==1):
             var1=newTemp()
             p[0].code.append([var1,"=","*",p[2].expList[i]])
-            p[0].code.append(['print_'+p[2].expTList[i],var1])
+            p[0].code.append(['print_'+p[2].expTList[i][0],var1])
         else:
-            p[0].code.append(['print_'+p[2].expTList[i],p[2].expList[i]])
+            p[0].code.append(['print_'+p[2].expTList[i][0],p[2].expList[i]])
 
 def p_ScanStmt(p):
     """
@@ -1255,9 +1262,9 @@ def p_ScanStmt(p):
 
         if(p[2].info["dereflist"][i]==1):
             var1=newTemp()
-            p[0].code.append(['scan_'+p[2].expTList[i],p[2].expList[i]])
+            p[0].code.append(['scan_'+p[2].expTList[i][0],p[2].expList[i]])
         elif(p[2].expList[i][0:2]=="va"):
-            p[0].code.append(['vscan_'+p[2].expTList[i],p[2].expList[i]])
+            p[0].code.append(['vscan_'+p[2].expTList[i][0],p[2].expList[i]])
         else:
             raise NameError("We can only scan to memory location",p.lineno(1))
 
