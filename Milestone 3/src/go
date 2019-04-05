@@ -1,0 +1,21 @@
+#!/bin/bash
+if [ $# -ne 1 ]; then
+    echo "There should be exactly one argument to compiler"
+    exit
+fi
+
+if [ "$1" ==  "--help" ]; then
+    echo "Follow the following steps:
+
+    1) cd Mile/src
+    2) ./go ../tests/input/test0
+
+    csv generated will be in symTab.csv, code will be present in code.txt
+"
+else
+    python parser.py $1
+fi
+
+#rm *.pyc *.csv
+#rm parsetab.py
+#rm parser.out
