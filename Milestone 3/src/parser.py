@@ -544,6 +544,7 @@ def p_FuncName(p):
     if(checkUse(p[1],'redeclaration')==True):
         raise NameError('The name of function has been used elsewhere :'+p[1], p.lineno(1))
     scopeTab[0].insert(p[1],["func"])
+    scopeTab[0].updateList(p[1],"Scope",currentFScope)
     currentFunc=p[1]
     p[0].code=[[p[1],":"]]
 

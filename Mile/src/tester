@@ -1,0 +1,7 @@
+ package main
+ import "df"
+ func main(){
+     var a *int
+     var b *int
+     b=a
+ }
