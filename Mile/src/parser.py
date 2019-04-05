@@ -933,12 +933,9 @@ def p_UnaryExpr(p):
         if(p[1].expTList[0][0]=="*"):
             p[0].info["memory"]=1
             p[0].info["deref"]=1
-            if(p[2].expTList[0][1] not in basicTypes):
-                var1=newTemp()
-                p[0].code.append([var1,"=","*",p[2].expList[0]])
-                p[0].expList=[var1]
-            else:
-                p[0].expList=p[2].expList
+            var1=newTemp()
+            p[0].code.append([var1,"=","*",p[2].expList[0]])
+            p[0].expList=[var1]
         elif(p[1].expTList[0][0]=="&"):
             p[0].info["memory"]=0
             if(p[2].info.get("deref")==None):
