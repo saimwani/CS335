@@ -771,12 +771,15 @@ def p_Parameters(p):
         scopeTab[0].updateList(currentFunc,"takes",p[2].expTList)
         argOffset=-8
         parSum=0
+        parList=[]
         n=len(p[2].idList)
         for i in range(0,len(p[2].idList)):
             scopeTab[currentScope].updateList(p[2].idList[n-i-1],"offset",argOffset)
+            parList.append(p[2].expList[i])
             argOffset-=p[2].expList[n-i-1]
             parSum+=p[2].expList[i]
         scopeTab[0].updateList(currentFunc,"#total_parSize",parSum)
+        scopeTab[0].updateList(currentFunc,"parSizeList",parList)
 
 def p_ParameterList(p):
     """
@@ -930,7 +933,7 @@ def p_UnaryExpr(p):
         if(p[1].expTList[0][0]=="*"):
             p[0].info["memory"]=1
             p[0].info["deref"]=1
-            if(p[2].expTList[0][1]=="pointer"):
+            if(p[2].expTList[0][1] not in basicTypes):
                 var1=newTemp()
                 p[0].code.append([var1,"=","*",p[2].expList[0]])
                 p[0].expList=[var1]
@@ -1113,12 +1116,14 @@ def p_PrimaryExpr(p):
                 p[0].expList.append(var1)
         p[0].info["multi_return"]=1
         p[0].info["memory"]=0
+        p[0].code=p[2].code
         p[0].code.append(["startf",p[1].info["isID"]])
         for i in range(0,len(p[2].expList)):
             if(p[2].info["dereflist"][i]==1):
-                var1=newTemp()
-                p[0].code.append([var1,"=","*",p[2].expList[i]])
-                p[0].code.append(["param",var1])
+                # var1=newTemp()
+                # p[0].code.append([var1,"=","*",p[2].expList[i]])
+                # p[0].code.append(["param",var1])
+                p[0].code.append(["param",p[2].expList[i],scopeTab[0].table[p[1].info["isID"]]["parSizeList"][i]  ])
             else:
                 p[0].code.append(["param",p[2].expList[i]])
         p[0].code.append(["call",p[1].info["isID"]])

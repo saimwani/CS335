@@ -1,0 +1,36 @@
+
+Table Number,0
+
+Parent,0,=,
+
+mulReturn,"{'takes': [['string']], '#total_parSize': 100, '#total_retSize': 200, 'parSizeList': [100], 'returns': [['string'], ['string']], 'retSizeList': [-108, -208], 'type': ['func']}"
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#1', 'type': ['string'], 'offset': -8}"
+#total_size,{'type': 204}
+vartemp#1,{'type': 'a'}
+mulReturn,{'type': ['func']}
+vartemp#3,{'type': 'y'}
+vartemp#2,{'type': 'x'}
+y,"{'tmp': 'vartemp#3', 'type': ['string'], 'offset': 104}"
+x,"{'tmp': 'vartemp#2', 'type': ['string'], 'offset': 4}"
+
+Table Number,2
+
+Parent,2,=,0
+
+a,"{'tmp': 'vartemp#4', 'type': ['string'], 'offset': 4}"
+c,"{'tmp': 'vartemp#6', 'type': ['string'], 'offset': 204}"
+b,"{'tmp': 'vartemp#5', 'type': ['string'], 'offset': 104}"
+temp#8,{'type': 'Temporary'}
+#total_size,{'type': 304}
+mulReturn,{'type': ['func']}
+vartemp#5,{'type': 'b'}
+vartemp#4,{'type': 'a'}
+vartemp#6,{'type': 'c'}
+main,{'type': ['func']}
+temp#7,{'type': 'Temporary'}

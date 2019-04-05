@@ -1,0 +1,18 @@
+ mulReturn :
+ vartemp#2 = vartemp#1
+ vartemp#3 = vartemp#1
+ return vartemp#2
+ return vartemp#3
+ return
+ return
+ main :
+ vartemp#4 = "ufsrhgihgi"
+ startf mulReturn
+ param vartemp#4
+ call mulReturn
+ endf mulReturn
+ temp#7 = retval_1
+ temp#8 = retval_2
+ vartemp#5 = temp#7
+ vartemp#6 = temp#8
+ return
