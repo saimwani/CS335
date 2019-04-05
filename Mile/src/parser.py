@@ -1673,6 +1673,14 @@ def p_error(p):
 
 parser=yacc.yacc()
 
+import pickle
+
+with open('scopeTabDump', 'wb') as handle:
+    pickle.dump(scopeTab, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+#with open('filename.pickle', 'rb') as handle:
+ #   b = pickle.load(handle)
+
 with open(sys.argv[1],'r') as f:
     input_str = f.read()
 out=parser.parse(input_str,tracking=True)
