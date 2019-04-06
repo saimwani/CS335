@@ -102,13 +102,16 @@ for code in codeLines:
         elif(code[2][0]!='t' and code[2][0]!='v' and code[4][0]=='t'):      # constant, temp
                 if (code[3][-2]=="n"):  #integer op
                     if(varToReg.get(code[4])==None):
-                        reg2=getReg()
+                        reg3=getReg()
                         off=getOffset(code[4])
-                        f.write("lw " + "$"+ str(reg) + "," + "-"+str(off)+"($fp)\n")
+                        f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($fp)\n")
                     else:
                         reg2=varToReg[code[4]]
+
+                    reg2=getReg()
+                    f.write("addi " + "$"+ str(reg2) + ",$0," +code[2]+"\n")
                     reg1=getReg()
-                    f.write("addi " + "$"+ str(reg1) + ",$0," +code[2]+"\n")
+                    
 
 
 
