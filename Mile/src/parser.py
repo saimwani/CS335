@@ -74,7 +74,7 @@ def openS():
     scopeNum+=1
     currentScope=scopeNum
     scopeList.append(currentScope)
-    offsetList.append(4)
+    offsetList.append(0)
     scopeTab[currentScope]=symbolTable()
     scopeTab[currentScope].assignParent(prevScope)
     scopeTab[currentScope].typeList=scopeTab[prevScope].typeList
@@ -160,10 +160,15 @@ def newTemp(a=None):
         newt="temp#"+str(tempCount)
         tempCount+=1
         scopeTab[currentScope].insert(newt,"Temporary")
+        offsetList[currentFScope]+=4
+        scopeTab[currentScope].updateList(newt,"offset",offsetList[currentFScope])
     else:
         newt="vartemp#"+str(tempCount)
         tempCount+=1
     return newt
+
+
+
 
 def newLabel(a=None):
     global labelCount
@@ -328,8 +333,9 @@ def p_ConstSpec(p):
                 scopeTab[currentScope].insert(x,[p[2]])
                 scopeTab[currentScope].insert(var1,x)
                 scopeTab[currentScope].updateList(x,"tmp",var1)
-                scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
                 offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[2]]
+                scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+
             scopeTab[currentScope].updateList(x,'constant',True)
 
     if(len(p[1].idList) != len(p[4].expTList)):
@@ -466,15 +472,17 @@ def p_VarSpec(p):
                     scopeTab[currentScope].insert(x,[p[2]])
                     scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
                     offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[2]]
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+
                 else:
                     var1=newTemp(1)
                     scopeTab[currentScope].insert(x,p[2].type)
                     scopeTab[currentScope].insert(var1,x)
                     scopeTab[currentScope].updateList(x,"tmp",var1)
-                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
                     offsetList[currentFScope]+=p[2].info["typesize"]
+                    scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
+
 
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].expTList)):
@@ -505,8 +513,9 @@ def p_VarSpec(p):
             scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
             scopeTab[currentScope].insert(var1,p[1].idList[i])
             scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
-            scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
             offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+            scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
+
             p[0]=node()
             p[0].code=p[1].code+p[3].code
             for i in range(0,len(p[1].idList)):
@@ -1445,8 +1454,9 @@ def p_ShortVarDecl(p):
         scopeTab[currentScope].insert(p[1].idList[i],p[3].expTList[i])
         scopeTab[currentScope].insert(var1,p[1].idList[i])
         scopeTab[currentScope].updateList(p[1].idList[i],"tmp",var1)
-        scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
         offsetList[currentFScope]+=scopeTab[currentScope].typeSList[p[3].expTList[i][0]]
+        scopeTab[currentScope].updateList(p[1].idList[i],"offset",offsetList[currentFScope])
+
     p[0]=node()
     p[0].code=p[3].code
     for i in range(0,len(p[1].idList)):
@@ -1683,7 +1693,3 @@ out=parser.parse(input_str,tracking=True)
 import pickle
 with open('scopeTabDump', 'wb') as handle:
     pickle.dump(scopeTab, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-
-
-
