@@ -966,7 +966,7 @@ def p_UnaryExpr(p):
                 p[0].code.append([var1,"=",1,'^'+p[2].expTList[0][0],p[2].expList[0]])
             if(p[1].expTList[0][0]=='^'):
                 p[0].code.append([var1,"=",1,'+'+p[2].expTList[0][0],p[2].expList[0]])
-                p[0].code.append([var1,"=",0,'-'+p[2].expTList[0][0],var1)
+                p[0].code.append([var1,"=",0,'-'+p[2].expTList[0][0],var1])
 
 def p_BinaryOp(p):
     """
