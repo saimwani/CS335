@@ -133,9 +133,9 @@ for code in codeLines:
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 val=eval(code[2]+op+code[4])
-                if (val=="True"):
+                if (val==True):
                     val=1
-                elif(val=="False"):
+                elif(val==False):
                     val=0
                 reg=getReg()
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
@@ -385,6 +385,37 @@ for code in codeLines:
             reg2=varToReg[code[3]]
         f.write("lw "+"$"+str(reg1)+ ",0"+"($" + str(reg2) + ")"+ "\n")
 
+
+    if (code[0]=="ifnot"):
+
+        if(code[1][0]!='t'):
+            reg1=getReg()
+            regToVar[reg1]=code[0]
+            varToReg[code[0]]=reg1
+            f.write("addi " + "$"+str(reg1)+ ",$0,"+ code[1]+"\n")
+        else:
+            if(varToReg.get(code[1])!=None):
+                reg1=varToReg[code[1]]
+            else:
+                reg1=getReg()
+                regToVar[reg1]=code[0]
+                varToReg[code[0]]=reg1
+                off=getOffset(code[1])
+                f.write("lw " + "$"+ str(reg1) + "," + "-"+str(off)+"($fp)\n")
+        f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
+
+    if (code[0]=="goto"):
+        f.write("j " + code[1]+"\n")
+
+
+
+
+
+
+
+
+
+
     if(len(code)==4 and code[2]=="&"):
         reg1=getReg()
         regToVar[reg1]=code[0]
@@ -405,6 +436,7 @@ for code in codeLines:
         else:
             reg2=varToReg[code[3]]
         f.write("addi $"+str(reg1)+",$"+str(reg2)+",0\n")
+
 
 
 f.close()
