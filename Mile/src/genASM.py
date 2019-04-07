@@ -56,6 +56,47 @@ def getReg(a=None):
         regReplaceFloat=(regReplaceFloat+1)%32
         return org
 
+def writeInstr(reg1, reg2, reg3, op):
+    if(op=="||" or op=="|"):
+        f.write("or "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="&&" or op=="&"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="+"):
+        f.write("add "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="-"):
+        f.write("sub "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="*"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="&&"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="+"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="&&"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="+"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="&&"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="+"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="&&"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+    elif(op=="+"):
+        f.write("and "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -87,7 +128,7 @@ for code in codeLines:
 
 
             else:   #float operation
-                op=code[3][-5]
+                op=code[3][:-5]
                 val=eval(code[2]+op+code[4])
                 if (val=="True"):
                     val=1
@@ -105,13 +146,27 @@ for code in codeLines:
                         reg3=getReg()
                         off=getOffset(code[4])
                         f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($fp)\n")
+                        regToVar[reg3]=code[4]
+                        varToReg[code[4]]=reg3
                     else:
-                        reg2=varToReg[code[4]]
+                        reg3=varToReg[code[4]]
 
                     reg2=getReg()
                     f.write("addi " + "$"+ str(reg2) + ",$0," +code[2]+"\n")
+                    regToVar[reg2]="free"
                     reg1=getReg()
-                    
+                    regToVar[reg1]=code[0]
+                    varToReg[code[0]]=reg1
+                    op=code[3][:-3]
+                    writeInstr(reg1, reg2, reg3, op)
+
+
+                else:
+                    xxxyyy=0
+
+
+
+
 
 
 
