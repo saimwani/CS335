@@ -502,6 +502,16 @@ for code in codeLines:
             off=off+4
 
     if(code[0]=="call"):
+        ## Reset the reg-var maps
+        for index in range(2, 24):
+            if (regToVar[index]=="free"):
+                continue
+            off=getOffset(regToVar[index])
+            if(varToReg[index][0]=='t' or not getType(varToReg[index]) ):
+                f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
+            regToVar[index]="free"
+            del varToReg[regToVar[index]]
+
         f.write("addi $sp,$sp,-4\n")
         f.write("sw $ra,0($sp)\n")
         f.write("addi $sp,$sp,-4\n")
@@ -531,6 +541,13 @@ for code in codeLines:
         f.write("lw $"+str(reg)+","+str(-off)+"($sp)\n")
 
     if(len(code)==1 and code[0]=="return"):
+        ## Reset reg-var maps
+        for index in range(2, 24):
+            if (regToVar[index]=="free"):
+                continue
+            regToVar[index]="free"
+            del varToReg[regToVar[index]]
+            
         if(currentLabel=="main"):
             f.write("jr $ra\n")
             currentLabel=""
