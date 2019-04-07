@@ -133,9 +133,9 @@ for code in codeLines:
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 val=eval(code[2]+op+code[4])
-                if (val=="True"):
+                if (val==True):
                     val=1
-                elif(val=="False"):
+                elif(val==False):
                     val=0
                 reg=getReg()
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
