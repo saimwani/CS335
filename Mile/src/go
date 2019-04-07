@@ -15,10 +15,5 @@ if [ "$1" ==  "--help" ]; then
 else
     python parser.py $1
     python genASM.py
-    vim mips.txt
-    vim code.txt
 fi
 
-#rm *.pyc *.csv
-#rm parsetab.py
-#rm parser.out

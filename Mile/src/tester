@@ -3,5 +3,5 @@
  func main(){
      var a *int
      var b *int
-     b=a
+     *b=10
  }
