@@ -1,0 +1,60 @@
+ main :
+ vartemp#2 = 0
+ label#1 :
+ label#3 :
+ temp#3 = vartemp#2 <int 10
+ ifnot temp#3 goto label#4
+ temp#4 = vartemp#2 %int 2
+ temp#5 = 0 |int 0
+ temp#6 = temp#4 ==int temp#5
+ ifnot temp#6 goto label#5
+ temp#7 = vartemp#2
+ temp#7 = temp#7 *int 12
+ temp#7 = temp#7 +int vartemp#1
+ temp#8 = temp#7 +int 0
+ temp#9 = vartemp#2 >>int 3
+ temp#10 = vartemp#2 +int temp#9
+ *temp#8 = temp#10
+ temp#11 = vartemp#2
+ temp#11 = temp#11 *int 12
+ temp#11 = temp#11 +int vartemp#1
+ temp#12 = temp#11 +int 4
+ temp#13 = vartemp#2 +int 1
+ temp#14 = vartemp#2 &int temp#13
+ temp#15 = vartemp#2 +int temp#14
+ *temp#12 = temp#15
+ goto label#6
+ label#5 :
+ temp#16 = vartemp#2
+ temp#16 = temp#16 *int 12
+ temp#16 = temp#16 +int vartemp#1
+ temp#17 = temp#16 +int 0
+ *temp#17 = 56
+ temp#18 = vartemp#2
+ temp#18 = temp#18 *int 12
+ temp#18 = temp#18 +int vartemp#1
+ temp#19 = temp#18 +int 4
+ temp#20 = vartemp#2
+ temp#20 = temp#20 *int 12
+ temp#20 = temp#20 +int vartemp#1
+ temp#21 = temp#20 +int 0
+ temp#22 = * temp#21
+ *temp#19 = temp#22
+ label#6 :
+ temp#23 = vartemp#2 !=int 0
+ ifnot temp#23 goto label#7
+ temp#24 = vartemp#2
+ temp#24 = temp#24 *int 12
+ temp#24 = temp#24 +int vartemp#1
+ temp#25 = temp#24 +int 8
+ temp#26 = vartemp#2 -int 1
+ temp#27 = temp#26
+ temp#27 = temp#27 *int 12
+ temp#27 = temp#27 +int vartemp#1
+ *temp#25 = temp#27
+ label#7 :
+ vartemp#2 = vartemp#2 +int 1
+ goto label#3
+ label#4 :
+ label#2 :
+ return

@@ -58,7 +58,7 @@ def getReg(a=None):
                 return i
         off=getOffset(regToVar[regReplace])
         if(varToReg[regReplace][0]=='t' or not getType(varToReg[regReplace]) ):
-            f.write("sw " + "$"+ str(regReplace) + "," + "-"+str(off)+"($fp)\n")
+            f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
         del varToReg[regToVar[regReplace]]
         org=regReplace
         regReplace=(regReplace%24) + 2
@@ -69,7 +69,7 @@ def getReg(a=None):
                 return i
         off=getOffset(regToVarFloat[regReplaceFloat])
         if(varToRegFloat[regReplaceFloat][0]=='t' or not getType(varToRegFloat[regReplaceFloat]) ):
-            f.write("swc1 " + "$f"+ str(regReplaceFloat) + "," + "-"+str(off)+"($fp)\n")
+            f.write("swc1 " + "$f"+ str(regReplaceFloat) + "," + str(-off)+"($fp)\n")
         del varToRegFloat[regToVarFloat[regReplaceFloat]]
         org=regReplaceFloat
         regReplaceFloat=(regReplaceFloat+1)%32
@@ -161,14 +161,14 @@ for code in codeLines:
                         reg3=getReg()
                         if(code[4][0]=='t'):
                             off=getOffset(code[4])
-                            f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($fp)\n")
+                            f.write("lw " + "$"+ str(reg3) + "," + str(-off)+"($fp)\n")
                         else:
                             off, control=getVarOffset(code[4])
                             if(not getType(code[4])):
                                 if(control==0):
-                                    f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($gp)\n")
+                                    f.write("lw " + "$"+ str(reg3) + "," +str(-off)+"($gp)\n")
                                 else:
-                                    f.write("lw " + "$"+ str(reg3) + ","+"-" +str(off)+"($fp)\n")
+                                    f.write("lw " + "$"+ str(reg3) + ","+str(-off)+"($fp)\n")
 
                             else:
                                 if(control==0):
@@ -197,14 +197,14 @@ for code in codeLines:
                         reg2=getReg()
                         if(code[2][0]=='t'):
                             off=getOffset(code[2])
-                            f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                            f.write("lw " + "$"+ str(reg2) + "," +str(-off)+"($fp)\n")
                         else:
                             off, control=getVarOffset(code[2])
                             if(not getType(code[2])):
                                 if(control==0):
-                                    f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
+                                    f.write("lw " + "$"+ str(reg2) + "," +str(-off)+"($gp)\n")
                                 else:
-                                    f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
+                                    f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                             else:
                                 if(control==0):
                                     f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
@@ -231,14 +231,14 @@ for code in codeLines:
                     reg2=getReg()
                     if(code[2][0]=='t'):
                         off=getOffset(code[2])
-                        f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
                     else:
                         off, control=getVarOffset(code[2])
                         if(not getType(code[2])):
                             if(control==0):
-                                f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
+                                f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
                             else:
-                                f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
+                                f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                         else:
                             if(control==0):
                                 f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
@@ -252,14 +252,14 @@ for code in codeLines:
                     reg3=getReg()
                     if(code[4][0]=='t'):
                         off=getOffset(code[4])
-                        f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($fp)\n")
+                        f.write("lw " + "$"+ str(reg3) + "," + str(-off)+"($fp)\n")
                     else:
                         off, control=getVarOffset(code[4])
                         if(not getType(code[4])):
                             if(control==0):
-                                f.write("lw " + "$"+ str(reg3) + "," + "-"+str(off)+"($gp)\n")
+                                f.write("lw " + "$"+ str(reg3) + "," + str(-off)+"($gp)\n")
                             else:
-                                f.write("lw " + "$"+ str(reg3) + ","+"-" +str(off)+"($fp)\n")
+                                f.write("lw " + "$"+ str(reg3) + ","+str(-off)+"($fp)\n")
 
                         else:
                             if(control==0):
@@ -289,14 +289,14 @@ for code in codeLines:
                 reg2=getReg()
                 if(code[2][0]=='t'):
                     off=getOffset(code[2])
-                    f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                    f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
                 else:
                     off, control=getVarOffset(code[2])
                     if(not getType(code[2])):
                         if(control==0):
-                            f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
                         else:
-                            f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
                             f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
@@ -317,14 +317,14 @@ for code in codeLines:
                 reg2=getReg()
                 if(code[3][0]=='t'):
                     off=getOffset(code[3])
-                    f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                    f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
                 else:
                     off, control=getVarOffset(code[3])
                     if(not getType(code[3])):
                         if(control==0):
-                            f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
                         else:
-                            f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
                             f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
@@ -338,7 +338,7 @@ for code in codeLines:
             reg1=getReg()
             if(code[1][0]=='t'):
                 off=getOffset(code[1])
-                f.write("lw " + "$"+ str(reg1) + "," + "-"+str(off)+"($fp)\n")
+                f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
             regToVar[reg1]=code[1]
             varToReg[code[1]]=reg1
         else:
@@ -353,14 +353,14 @@ for code in codeLines:
             reg2=getReg()
             if(code[3][0]=='t'):
                 off=getOffset(code[3])
-                f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
             else:
                 off, control=getVarOffset(code[3])
                 if(not getType(code[3])):
                     if(control==0):
-                        f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
                     else:
-                        f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
+                        f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                 else:
                     if(control==0):
                         f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
@@ -387,7 +387,7 @@ for code in codeLines:
                 regToVar[reg1]=code[0]
                 varToReg[code[0]]=reg1
                 off=getOffset(code[1])
-                f.write("lw " + "$"+ str(reg1) + "," + "-"+str(off)+"($fp)\n")
+                f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
         f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
 
     if (code[0]=="goto"):
@@ -401,7 +401,7 @@ for code in codeLines:
             reg2=getReg()
             if(code[3][0]=='t'):
                 off=getOffset(code[3])
-                f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+                f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
             else:
                 off, control=getVarOffset(code[3])
                 if(control==0):

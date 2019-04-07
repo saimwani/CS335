@@ -1,0 +1,72 @@
+
+Table Number,0
+
+Parent,0,=,
+
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 1, 'type': ['func']}"
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#1', 'type': ['arr10', 'vertex'], 'offset': 4}"
+vartemp#1,{'type': 'a'}
+#total_size,{'type': 128}
+main,{'type': ['func']}
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+
+Table Number,2
+
+Parent,2,=,1
+
+i,"{'tmp': 'vartemp#2', 'type': ['int'], 'offset': 124}"
+vartemp#2,{'type': 'i'}
+main,{'type': ['func']}
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+temp#3,{'type': 'Temporary'}
+
+Table Number,3
+
+Parent,3,=,2
+
+temp#15,{'type': 'Temporary'}
+temp#11,{'type': 'Temporary'}
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+temp#10,{'type': 'Temporary'}
+temp#13,{'type': 'Temporary'}
+temp#12,{'type': 'Temporary'}
+temp#9,{'type': 'Temporary'}
+temp#8,{'type': 'Temporary'}
+temp#14,{'type': 'Temporary'}
+main,{'type': ['func']}
+temp#5,{'type': 'Temporary'}
+temp#4,{'type': 'Temporary'}
+temp#7,{'type': 'Temporary'}
+temp#6,{'type': 'Temporary'}
+
+Table Number,4
+
+Parent,4,=,2
+
+temp#20,{'type': 'Temporary'}
+temp#21,{'type': 'Temporary'}
+temp#22,{'type': 'Temporary'}
+temp#19,{'type': 'Temporary'}
+temp#18,{'type': 'Temporary'}
+temp#17,{'type': 'Temporary'}
+temp#16,{'type': 'Temporary'}
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+main,{'type': ['func']}
+
+Table Number,5
+
+Parent,5,=,2
+
+temp#23,{'type': 'Temporary'}
+temp#24,{'type': 'Temporary'}
+temp#25,{'type': 'Temporary'}
+temp#26,{'type': 'Temporary'}
+temp#27,{'type': 'Temporary'}
+vertex,"{'offset y': 4, 'offset x': 0, 'offset z': 8, 'y': ['int'], 'x': ['int'], 'z': ['pointer', 'vertex'], 'type': ['struct']}"
+main,{'type': ['func']}

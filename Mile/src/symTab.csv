@@ -1,0 +1,24 @@
+
+Table Number,0
+
+Parent,0,=,
+
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 1, 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+#total_size,{'type': 16}
+main,{'type': ['func']}
+
+Table Number,2
+
+Parent,2,=,1
+
+temp#2,"{'type': 'Temporary', 'offset': 8}"
+vartemp#4,{'type': 'X'}
+temp#1,"{'type': 'Temporary', 'offset': 4}"
+X,"{'tmp': 'vartemp#4', 'type': ['int'], 'offset': 16}"
+temp#3,"{'type': 'Temporary', 'offset': 12}"
+main,{'type': ['func']}

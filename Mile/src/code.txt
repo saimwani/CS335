@@ -1,0 +1,8 @@
+ main :
+ temp#1 = 5 >int 7
+ temp#2 = 8 >int 12
+ temp#3 = temp#1 ||bool temp#2
+ ifnot temp#3 goto label#1
+ vartemp#4 = 0
+ label#1 :
+ return
