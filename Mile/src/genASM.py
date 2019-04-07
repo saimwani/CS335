@@ -130,7 +130,7 @@ for code in codeLines:
 
     if (len(code) == 5):
         if(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
-            if (code[3][-3]=="i" or code[3][-3]=='u'):  #integer op
+            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 val=eval(code[2]+op+code[4])
                 if (val=="True"):
@@ -157,7 +157,7 @@ for code in codeLines:
 
 
         elif(code[2][0]!='t' and code[2][0]!='v' and (code[4][0]=='t' or code[4][0]=='v')):   # constant, temp or constant, vartemp
-                if (code[3][-3]=="i" or code[3][-3]=='u'):  #integer op or rune op
+                if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                     if(varToReg.get(code[4])==None):
                         reg3=getReg()
@@ -197,7 +197,7 @@ for code in codeLines:
 
 
         elif(code[4][0]!='t' and code[4][0]!='v' and (code[2][0]=='t' or code[2][0]=='v')):   # temp, constant or vartemp, constant
-                if (code[3][-3]=="i" or code[3][-3]=='u'):  #integer op or rune op
+                if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                     if(varToReg.get(code[2])==None):
                         reg2=getReg()
@@ -238,7 +238,7 @@ for code in codeLines:
 
 
         else:  # t,t or t,v, or v,t, or v,v
-            if (code[3][-3]=="i" or code[3][-3]=='u'):  #integer or rune  op
+            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer or rune  op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 if(varToReg.get(code[2])==None):
                     reg2=getReg()
@@ -384,6 +384,27 @@ for code in codeLines:
         else:
             reg2=varToReg[code[3]]
         f.write("lw "+"$"+str(reg1)+ ",0"+"($" + str(reg2) + ")"+ "\n")
+
+    if(len(code)==4 and code[2]=="&"):
+        reg1=getReg()
+        regToVar[reg1]=code[0]
+        varToReg[code[0]]=reg1
+        if(varToReg.get(code[3])==None):
+            reg2=getReg()
+            if(code[3][0]=='t'):
+                off=getOffset(code[3])
+                f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($fp)\n")
+            else:
+                off, control=getVarOffset(code[3])
+                if(control==0):
+                   f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                else:
+                    f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+            regToVar[reg2]=code[3]
+            varToReg[code[3]]=reg2
+        else:
+            reg2=varToReg[code[3]]
+        f.write("addi $"+str(reg1)+",$"+str(reg2)+",0\n")
 
 
 f.close()
