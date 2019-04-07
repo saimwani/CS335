@@ -1,7 +1,15 @@
  package main
- import "df"
- func main(){
-     if ( 5>7 ) || (8>12) {
-         X:=0
-     }
+ func fun(m,x,y int,arr [3]int, ptr *int) (int,int) {
+     var a int
+     a=x+y
+     return (x+y),a
  }
+ func main(){
+     var x,y int
+     var z,w int
+     var arr [3]int
+     x=2
+     y=3
+     (z),w=fun(10,x+2,y,arr,&(arr[1]))
+ }
+

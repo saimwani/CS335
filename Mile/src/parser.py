@@ -1436,9 +1436,9 @@ def p_ReturnStmt(p):
             if(p[2].info["dereflist"][i]==1):
                 var1=newTemp()
                 p[0].code.append([var1,"=","*",p[2].expList[i]])
-                p[0].code.append(["return",var1])
+                p[0].code.append([currentFunc,"return",var1,str(i)])
             else:
-                p[0].code.append(["return",p[2].expList[i]])
+                p[0].code.append([currentFunc,"return",p[2].expList[i],str(i)])
         p[0].code.append(["return"])
 
 def p_BreakStmt(p):

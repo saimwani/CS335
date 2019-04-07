@@ -8,6 +8,15 @@ basicTypes=["int","float","rune","string","bool"]
 with open("code.txt") as f:
     content = f.readlines()
 content = [x.strip() for x in content]
+
+## To Remove Concurrent Returns ##
+index=1
+while(index<len(content)):
+    if(content[index]=="return" and content[index-1]=="return"):
+        del(content[index])
+    else:
+        index=index+1
+
 j=0
 codeLines=[]
 for i in content:
@@ -28,6 +37,9 @@ varToRegFloat={}
 
 regReplace=1
 regReplaceFloat=0
+
+currentFunc=""
+currentLabel=""
 
 def getOffset(name):
     for x in scopeTab:
@@ -123,6 +135,8 @@ f.write(".text\n.globl main\n")
 
 for code in codeLines:
     if (len(code) == 2 and code[1]==":"):
+	if(code[0]=="main"):
+            currentLabel="main"
         f.write(code[0]+code[1]+"\n")
         if (scopeTab[0].table.get(code[0])!= None):
             scope=scopeTab[0].table[code[0]]["Scope"]
@@ -277,13 +291,14 @@ for code in codeLines:
             else:
                 xxxyyy=0
 
-    if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*"):
+    if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):
         reg1=getReg()
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg2=getReg()
             f.write("addi "+ "$" +str(reg2)+",$0," + code[2] +"\n")
+            regToVar[reg2]="free"
         else:
             if(varToReg.get(code[2])==None):
                 reg2=getReg()
@@ -312,6 +327,7 @@ for code in codeLines:
         if(code[3][0]!='t' and code[3][0]!='v'): #constant
             reg2=getReg()
             f.write("addi "+ "$" +str(reg2)+",$0," + code[3] +"\n")
+            regToVar[reg2]="free"
         else:
             if(varToReg.get(code[3])==None):
                 reg2=getReg()
@@ -405,7 +421,7 @@ for code in codeLines:
             else:
                 off, control=getVarOffset(code[3])
                 if(control==0):
-                   f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                    f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
                 else:
                     f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
             regToVar[reg2]=code[3]
@@ -414,6 +430,148 @@ for code in codeLines:
             reg2=varToReg[code[3]]
         f.write("addi $"+str(reg1)+",$"+str(reg2)+",0\n")
 
+    if(code[0]=="startf"):
+        currentFunc=code[1]
+        retSize=scopeTab[0].table[currentFunc]["#total_retSize"]
+        f.write("addi $sp,$sp,"+str(-retSize)+"\n")
+
+    if(code[0]=="param" and len(code)==2): # param reg
+        if(code[1][0]!='t' and code[1][0]!='v'): #constant
+            reg=getReg()
+            f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
+            regToVar[reg]="free"
+        else:
+            if(varToReg.get(code[1])==None):
+                reg=getReg()
+                if(code[1][0]=='t'):
+                    off=getOffset(code[1])
+                    f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                else:
+                    off, control=getVarOffset(code[1])
+                    if(not getType(code[1])):
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                    else:
+                        if(control==0):
+                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                        else:
+                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                regToVar[reg]=code[1]
+                varToReg[code[1]]=reg
+            else:
+                reg=varToReg[code[1]]
+        f.write("addi $sp,$sp,-4\nsw $"+str(reg)+",0($sp)\n")
+
+    if(code[0]=="param" and len(code)==3): # param reg size
+        size=int(code[2])
+        if(code[1][0]!='t' and code[1][0]!='v'): #constant
+            reg=getReg()
+            f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
+            regToVar[reg]="free"
+        else:
+            if(varToReg.get(code[1])==None):
+                reg=getReg()
+                if(code[1][0]=='t'):
+                    off=getOffset(code[1])
+                    f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                else:
+                    off, control=getVarOffset(code[1])
+                    if(not getType(code[1])):
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                    else:
+                        if(control==0):
+                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                        else:
+                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                regToVar[reg]=code[1]
+                varToReg[code[1]]=reg
+            else:
+                reg=varToReg[code[1]]
+        regToCopy=getReg()
+        off=0
+        while size>0:
+            f.write("addi $sp,$sp,-4\n")
+            f.write("lw $"+str(regToCopy)+","+str(off)+"($"+str(reg)+")\n")
+            f.write("sw $"+str(regToCopy)+",0($sp)\n")
+            size=size-4
+            off=off+4
+
+    if(code[0]=="call"):
+        f.write("addi $sp,$sp,-4\n")
+        f.write("sw $ra,0($sp)\n")
+        f.write("addi $sp,$sp,-4\n")
+        f.write("sw $fp,0($sp)\n")
+        f.write("add $fp,$0,$sp\n")
+        f.write("jal "+currentFunc+"\n")
+
+    if(code[0]=="endf"):
+        size=4+scopeTab[0].table[currentFunc]["#total_retSize"]+scopeTab[0].table[currentFunc]["#total_parSize"]
+        f.write("lw $ra,0($sp)\n")
+        f.write("addi $sp,$sp,"+str(size)+"\n")
+
+    if(len(code)==3 and code[2][0:3]=="ret"):
+        reg=getReg()
+        regToVar[reg]=code[0]
+        varToReg[code[0]]=reg
+        retNumber=int(code[2][7:])
+        off=4*retNumber
+        if(varToReg.get(code[0])==None):
+            reg=getReg()
+            off=getOffset(code[0])
+            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+            regToVar[reg]=code[0]
+            varToReg[code[0]]=reg
+        else:
+            reg=varToReg[code[0]]
+        f.write("lw $"+str(reg)+","+str(-off)+"($sp)\n")
+
+    if(len(code)==1 and code[0]=="return"):
+        if(currentLabel=="main"):
+            f.write("jr $ra\n")
+            currentLabel=""
+        else:
+            f.write("add $sp,$fp,$0\n")
+            f.write("lw $fp,0($sp)\n")
+            f.write("addi $sp,$sp,4\n")
+            f.write("jr $ra\n")
+
+    if(len(code)==4 and code[1]=="return"):
+        retNumber=int(code[3])
+        func=code[0]
+        off=scopeTab[0].table[func]["retSizeList"][retNumber]
+
+        if(code[2][0]!='t' and code[2][0]!='v'): #constant
+            reg=getReg()
+            f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
+            regToVar[reg]="free"
+        else:
+            if(varToReg.get(code[2])==None):
+                reg=getReg()
+                if(code[2][0]=='t'):
+                    off=getOffset(code[2])
+                    f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                else:
+                    off, control=getVarOffset(code[2])
+                    if(not getType(code[2])):
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
+                    else:
+                        if(control==0):
+                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                        else:
+                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                regToVar[reg]=code[2]
+                varToReg[code[2]]=reg
+            else:
+                reg=varToReg[code[2]]
+                f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
 
 
 f.close()
