@@ -154,8 +154,6 @@ for code in codeLines:
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
                 regToVarFloat[reg]=code[0]
                 varToRegFloat[code[0]]=reg
-
-
         elif(code[2][0]!='t' and code[2][0]!='v' and (code[4][0]=='t' or code[4][0]=='v')):   # constant, temp or constant, vartemp
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
@@ -189,12 +187,8 @@ for code in codeLines:
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
-
-
                 else:
                     xxxyyy=0
-
-
 
         elif(code[4][0]!='t' and code[4][0]!='v' and (code[2][0]=='t' or code[2][0]=='v')):   # temp, constant or vartemp, constant
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
@@ -211,13 +205,11 @@ for code in codeLines:
                                     f.write("lw " + "$"+ str(reg2) + "," + "-"+str(off)+"($gp)\n")
                                 else:
                                     f.write("lw " + "$"+ str(reg2) + ","+"-" +str(off)+"($fp)\n")
-
                             else:
                                 if(control==0):
                                     f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
                                 else:
                                     f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
-
                         regToVar[reg2]=code[2]
                         varToReg[code[2]]=reg2
                     else:
@@ -230,13 +222,8 @@ for code in codeLines:
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
-
-
                 else:
                     xxxyyy=0
-
-
-
         else:  # t,t or t,v, or v,t, or v,v
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer or rune  op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
@@ -385,7 +372,6 @@ for code in codeLines:
             reg2=varToReg[code[3]]
         f.write("lw "+"$"+str(reg1)+ ",0"+"($" + str(reg2) + ")"+ "\n")
 
-
     if (code[0]=="ifnot"):
 
         if(code[1][0]!='t'):
@@ -406,15 +392,6 @@ for code in codeLines:
 
     if (code[0]=="goto"):
         f.write("j " + code[1]+"\n")
-
-
-
-
-
-
-
-
-
 
     if(len(code)==4 and code[2]=="&"):
         reg1=getReg()
