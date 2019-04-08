@@ -172,7 +172,7 @@ def newTemp(a=None):
 
 def newLabel(a=None):
     global labelCount
-    newl="label#"+str(labelCount)
+    newl="label_"+str(labelCount)
     labelCount+=1
     if(a!=None and a==1):
         startFor.append(newl)

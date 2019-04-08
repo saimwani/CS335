@@ -49,8 +49,6 @@ def newMsg(a=None):
     msgCount+=1
     return newm
 
-
-
 def getOffset(name):
     for x in scopeTab:
         if (scopeTab[x].table.get(name)==None):
@@ -71,7 +69,6 @@ def getType(vartemp):
             return 1
         else:
             return 0
-
 
 def getReg(a=None):
     if (a==None):
@@ -129,14 +126,14 @@ def writeInstrBin(reg1, reg2, reg3, op):
     elif(op==">"):
         f.write("slt "+"$"+str(reg1)+",$" +str(reg3)+",$" +str(reg2)+"\n")
     elif(op=="<="):
-        f.write("slt "+"$"+str(reg1)+",$" +str(reg3)+",$" +str(reg2)+"\n"+"xori " +"$" + str(reg1)+",$"+ str(reg1)+ "1"+ "\n")
+        f.write("slt "+"$"+str(reg1)+",$" +str(reg3)+",$" +str(reg2)+"\n"+"xori " +"$" + str(reg1)+",$"+ str(reg1)+ ",1"+ "\n")
     elif(op==">="):
-        f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"xori " +"$" + str(reg1)+",$"+ str(reg1)+ "1"+ "\n")
+        f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"xori " +"$" + str(reg1)+",$"+ str(reg1)+ ",1"+ "\n")
     elif(op=="=="):
         reg4=getReg()
         regToVar[reg4]="free"
         f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"slt " +"$" + str(reg4)+",$"+ str(reg3)+ ",$"+str(reg2)+ "\n")
-        f.write("xori " +"$" + str(reg1)+",$"+ str(reg1)+ "1"+ "\n" + "xori " +"$" + str(reg4)+",$"+ str(reg4)+ "1"+ "\n")
+        f.write("xori " +"$" + str(reg1)+",$"+ str(reg1)+ ",1"+ "\n" + "xori " +"$" + str(reg4)+",$"+ str(reg4)+ ",1"+ "\n")
         f.write("and "+"$"+str(reg1)+",$" +str(reg4)+",$" +str(reg1)+"\n")
     elif(op=="!="):
         reg4=getReg()
@@ -160,17 +157,22 @@ def saveReg(index):
         del varToReg[regToVar[index]]
     regToVar[index]="free"
 
-
-
 f=open('mips.txt', 'wr')
 
 f.write(".text\n.globl main\n")
 for code in codeLines:
+    temp=""
+    for x in code:
+        temp=temp+x+" "
+    f.write(temp+"\n")
+    f.write("...........................\n")
     if (len(code) == 2 and code[1]==":"):
 	if(code[0]=="main"):
             currentLabel="main"
-        f.write(code[0]+code[1]+"\n")
-        f.write("addi "+ "$fp,$sp,0\n")
+            f.write(code[0]+code[1]+"\n")
+            f.write("addi "+ "$fp,$sp,0\n")
+        else:
+            f.write(code[0]+code[1]+"\n")
         if (scopeTab[0].table.get(code[0])!= None):
             scope=scopeTab[0].table[code[0]]["Scope"]
             f.write("addi "+"$sp,"+"$sp,"+"-"+str(scopeTab[scope].table["#total_size"]["type"])+"\n")
@@ -354,7 +356,7 @@ for code in codeLines:
                 varToReg[code[2]]=reg2
             else:
                 reg2=varToReg[code[2]]
-            f.write("addi "+"$"+str(reg1)+ ",$" + str(reg2) + ","+ "0\n")
+        f.write("addi "+"$"+str(reg1)+ ",$" + str(reg2) + ","+ "0\n")
 
     if(len(code)==4 and code[0]=="*"):
         if(code[3][0]!='t' and code[3][0]!='v'): #constant
@@ -422,22 +424,26 @@ for code in codeLines:
         f.write("lw "+"$"+str(reg1)+ ",0"+"($" + str(reg2) + ")"+ "\n")
 
     if (code[0]=="ifnot"):
-
-        if(code[1][0]!='t'):
-            reg1=getReg()
-            regToVar[reg1]=code[0]
-            varToReg[code[0]]=reg1
-            f.write("addi " + "$"+str(reg1)+ ",$0,"+ code[1]+"\n")
+        if (code[1]=='0'):
+            f.write("j "+code[3])
+        elif (code[1]=='1'):
+            xxxyyy=0
         else:
-            if(varToReg.get(code[1])!=None):
-                reg1=varToReg[code[1]]
-            else:
+            if(code[1][0]!='t'):
                 reg1=getReg()
-                regToVar[reg1]=code[0]
-                varToReg[code[0]]=reg1
-                off=getOffset(code[1])
-                f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
-        f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
+                regToVar[reg1]=code[1]
+                varToReg[code[1]]=reg1
+                f.write("addi " + "$"+str(reg1)+ ",$0,"+ code[1]+"\n")
+            else:
+                if(varToReg.get(code[1])!=None):
+                    reg1=varToReg[code[1]]
+                else:
+                    reg1=getReg()
+                    regToVar[reg1]=code[1]
+                    varToReg[code[1]]=reg1
+                    off=getOffset(code[1])
+                    f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
+            f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
 
     if (code[0]=="goto"):
         f.write("j " + code[1]+"\n")
@@ -691,7 +697,7 @@ for code in codeLines:
 
 
     if(code[0]=="print_string"):
-        f.write("start string printing\n")
+#        f.write("start string printing\n")
         saveReg(2)
         f.write("addi "+ "$v0,$0,4\n" )  #print_string syscall is 4, $v0 is $2
         saveReg(4)
@@ -706,9 +712,15 @@ for code in codeLines:
             f.write(msg +": "+".asciiz "+ st+ "\n" )
             f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
             f.write("syscall\n")
-
         else:
             xxx=0
+
+    # print (code)
+    # print("-----------------------------------------------")
+    # print (regToVar)
+    # print("-----------------------------------------------")
+    # print(varToReg)
+    f.write("###############################################\n")
 
 
 

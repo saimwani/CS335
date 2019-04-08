@@ -1,11 +1,5 @@
  package main
  
- /* func fun(m,x,y int,arr [3]int, ptr *int) (int,int) { */
- /*     var a int */
- /*     a=x+y */
- /*     return (x+y),a */
- /* } */
-
  func fun(x,y int) (int){
     return x+y
  }
@@ -14,9 +8,20 @@
      var x,y int
      var z,w int
      var arr [3]int
-     x=2
-     y=3
-     w=fun(x+2,y)
-     print w
+     sum:=0
+    
+    
+    i:= 1
+    
+    for True {
+        if i >= 4 {
+            break
+        }
+        sum= sum+ (i*i)
+        i=i+1
+        print i
+        /* print "\n" */
+     }
+     print sum
  }
 

@@ -17,6 +17,6 @@ else
     python 3ACFix.py
     python genAsm.py 
     python fixcode.py 
-    spim -file "mips.txt"
+    # spim -file "mips.txt"
 fi
 
