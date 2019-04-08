@@ -70,8 +70,11 @@ def getType(vartemp):
         else:
             return 0
 
-def getReg(a=None):
-    if (a==None):
+def getReg(a,b=None):
+    if (a==0):
+        if(b!=None):
+            if(varToReg.get(b)!=None):
+                return varToReg[b]
         for i in range(2, 26):
             if (regToVar[i]=="free"):
                 return i
@@ -130,13 +133,13 @@ def writeInstrBin(reg1, reg2, reg3, op):
     elif(op==">="):
         f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"xori " +"$" + str(reg1)+",$"+ str(reg1)+ ",1"+ "\n")
     elif(op=="=="):
-        reg4=getReg()
+        reg4=getReg(0)
         regToVar[reg4]="free"
         f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"slt " +"$" + str(reg4)+",$"+ str(reg3)+ ",$"+str(reg2)+ "\n")
         f.write("xori " +"$" + str(reg1)+",$"+ str(reg1)+ ",1"+ "\n" + "xori " +"$" + str(reg4)+",$"+ str(reg4)+ ",1"+ "\n")
         f.write("and "+"$"+str(reg1)+",$" +str(reg4)+",$" +str(reg1)+"\n")
     elif(op=="!="):
-        reg4=getReg()
+        reg4=getReg(0)
         regToVar[reg4]="free"
         f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"slt " +"$" + str(reg4)+",$"+ str(reg3)+ ",$"+str(reg2)+ "\n")
         f.write("or "+"$"+str(reg1)+",$" +str(reg4)+",$" +str(reg1)+"\n")
@@ -157,6 +160,15 @@ def saveReg(index):
         del varToReg[regToVar[index]]
     regToVar[index]="free"
 
+def reset(a=None):
+    if(a==None):
+        for i in range(2,26):
+            if(regToVar[i]=="free"):
+                continue
+            saveReg(i)
+    else:
+        xxxyyy=0
+
 f=open('mips.txt', 'wr')
 
 f.write(".text\n.globl main\n")
@@ -164,8 +176,8 @@ for code in codeLines:
     temp=""
     for x in code:
         temp=temp+x+" "
-    f.write(temp+"\n")
-    f.write("...........................\n")
+    # f.write(temp+"\n")
+    # f.write("...........................\n")
     if (len(code) == 2 and code[1]==":"):
 	if(code[0]=="main"):
             currentLabel="main"
@@ -186,7 +198,7 @@ for code in codeLines:
                     val=1
                 elif(val==False):
                     val=0
-                reg=getReg()
+                reg=getReg(0,code[0])
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
                 regToVar[reg]=code[0]
                 varToReg[code[0]]=reg
@@ -199,7 +211,7 @@ for code in codeLines:
                     val=1
                 elif(val=="False"):
                     val=0
-                reg=getReg(f)
+                reg=getReg(1,code[0])
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
                 regToVarFloat[reg]=code[0]
                 varToRegFloat[code[0]]=reg
@@ -207,7 +219,7 @@ for code in codeLines:
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                     if(varToReg.get(code[4])==None):
-                        reg3=getReg()
+                        reg3=getReg(0)
                         if(code[4][0]=='t'):
                             off=getOffset(code[4])
                             f.write("lw " + "$"+ str(reg3) + "," + str(-off)+"($fp)\n")
@@ -229,10 +241,10 @@ for code in codeLines:
                     else:
                         reg3=varToReg[code[4]]
 
-                    reg2=getReg()
+                    reg2=getReg(0)
                     f.write("addi " + "$"+ str(reg2) + ",$0," +code[2]+"\n")
                     regToVar[reg2]="free"
-                    reg1=getReg()
+                    reg1=getReg(0,code[0])
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
@@ -243,7 +255,7 @@ for code in codeLines:
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                     if(varToReg.get(code[2])==None):
-                        reg2=getReg()
+                        reg2=getReg(0)
                         if(code[2][0]=='t'):
                             off=getOffset(code[2])
                             f.write("lw " + "$"+ str(reg2) + "," +str(-off)+"($fp)\n")
@@ -264,10 +276,10 @@ for code in codeLines:
                     else:
                         reg2=varToReg[code[2]]
 
-                    reg3=getReg()
+                    reg3=getReg(0)
                     f.write("addi " + "$"+ str(reg3) + ",$0," +code[4]+"\n")
                     regToVar[reg3]="free"
-                    reg1=getReg()
+                    reg1=getReg(0,code[0])
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
@@ -277,7 +289,7 @@ for code in codeLines:
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer or rune  op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 if(varToReg.get(code[2])==None):
-                    reg2=getReg()
+                    reg2=getReg(0)
                     if(code[2][0]=='t'):
                         off=getOffset(code[2])
                         f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
@@ -298,7 +310,7 @@ for code in codeLines:
                 else:
                     reg2=varToReg[code[2]]
                 if(varToReg.get(code[4])==None):
-                    reg3=getReg()
+                    reg3=getReg(0)
                     if(code[4][0]=='t'):
                         off=getOffset(code[4])
                         f.write("lw " + "$"+ str(reg3) + "," + str(-off)+"($fp)\n")
@@ -319,7 +331,7 @@ for code in codeLines:
                     varToReg[code[4]]=reg3
                 else:
                     reg3=varToReg[code[4]]
-                reg1=getReg()
+                reg1=getReg(0,code[0])
                 regToVar[reg1]=code[0]
                 varToReg[code[0]]=reg1
                 writeInstrBin(reg1, reg2, reg3, op)
@@ -327,16 +339,16 @@ for code in codeLines:
                 xxxyyy=0
 
     if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):  #CHECK
-        reg1=getReg()
+        reg1=getReg(0,code[0])
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
-            reg2=getReg()
+            reg2=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[2] +"\n")
             regToVar[reg2]="free"
         else:
             if(varToReg.get(code[2])==None):
-                reg2=getReg()
+                reg2=getReg(0)
                 if(code[2][0]=='t'):
                     off=getOffset(code[2])
                     f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
@@ -360,12 +372,12 @@ for code in codeLines:
 
     if(len(code)==4 and code[0]=="*"):
         if(code[3][0]!='t' and code[3][0]!='v'): #constant
-            reg2=getReg()
+            reg2=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[3] +"\n")
             regToVar[reg2]="free"
         else:
             if(varToReg.get(code[3])==None):
-                reg2=getReg()
+                reg2=getReg(0)
                 if(code[3][0]=='t'):
                     off=getOffset(code[3])
                     f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
@@ -386,7 +398,7 @@ for code in codeLines:
             else:
                 reg2=varToReg[code[3]]
         if(varToReg.get(code[1])==None):
-            reg1=getReg()
+            reg1=getReg(0)
             if(code[1][0]=='t'):
                 off=getOffset(code[1])
                 f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
@@ -397,11 +409,11 @@ for code in codeLines:
         f.write("sw $"+str(reg2)+",0($"+str(reg1)+")\n")
 
     if(len(code)==4 and code[2]=="*"):
-        reg1=getReg()
+        reg1=getReg(0,code[0])
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
         if(varToReg.get(code[3])==None):
-            reg2=getReg()
+            reg2=getReg(0)
             if(code[3][0]=='t'):
                 off=getOffset(code[3])
                 f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
@@ -423,6 +435,9 @@ for code in codeLines:
             reg2=varToReg[code[3]]
         f.write("lw "+"$"+str(reg1)+ ",0"+"($" + str(reg2) + ")"+ "\n")
 
+    if(code[0]=="reset"):
+        reset()
+
     if (code[0]=="ifnot"):
         if (code[1]=='0'):
             f.write("j "+code[3])
@@ -430,7 +445,7 @@ for code in codeLines:
             xxxyyy=0
         else:
             if(code[1][0]!='t'):
-                reg1=getReg()
+                reg1=getReg(0,code[1])
                 regToVar[reg1]=code[1]
                 varToReg[code[1]]=reg1
                 f.write("addi " + "$"+str(reg1)+ ",$0,"+ code[1]+"\n")
@@ -438,7 +453,7 @@ for code in codeLines:
                 if(varToReg.get(code[1])!=None):
                     reg1=varToReg[code[1]]
                 else:
-                    reg1=getReg()
+                    reg1=getReg(0,code[1])
                     regToVar[reg1]=code[1]
                     varToReg[code[1]]=reg1
                     off=getOffset(code[1])
@@ -446,14 +461,15 @@ for code in codeLines:
             f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
 
     if (code[0]=="goto"):
+        reset()
         f.write("j " + code[1]+"\n")
 
     if(len(code)==4 and code[2]=="&"):
-        reg1=getReg()
+        reg1=getReg(0,code[0])
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
         if(varToReg.get(code[3])==None):
-            reg2=getReg()
+            reg2=getReg(0)
             if(code[3][0]=='t'):
                 off=getOffset(code[3])
                 f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
@@ -476,12 +492,12 @@ for code in codeLines:
 
     if(code[0]=="param" and len(code)==2): # param reg
         if(code[1][0]!='t' and code[1][0]!='v'): #constant
-            reg=getReg()
+            reg=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
             regToVar[reg]="free"
         else:
             if(varToReg.get(code[1])==None):
-                reg=getReg()
+                reg=getReg(0)
                 if(code[1][0]=='t'):
                     off=getOffset(code[1])
                     f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
@@ -506,12 +522,12 @@ for code in codeLines:
     if(code[0]=="param" and len(code)==3): # param reg size
         size=int(code[2])
         if(code[1][0]!='t' and code[1][0]!='v'): #constant
-            reg=getReg()
+            reg=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
             regToVar[reg]="free"
         else:
             if(varToReg.get(code[1])==None):
-                reg=getReg()
+                reg=getReg(0)
                 if(code[1][0]=='t'):
                     off=getOffset(code[1])
                     f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
@@ -531,7 +547,7 @@ for code in codeLines:
                 varToReg[code[1]]=reg
             else:
                 reg=varToReg[code[1]]
-        regToCopy=getReg()
+        regToCopy=getReg(0)
         off=0
         while size>0:
             f.write("addi $sp,$sp,-4\n")
@@ -571,13 +587,13 @@ for code in codeLines:
         f.write("addi $sp,$sp,"+str(size)+"\n")
 
     if(len(code)==3 and code[2][0:3]=="ret"):
-        reg=getReg()
+        reg=getReg(0,code[0])
         regToVar[reg]=code[0]
         varToReg[code[0]]=reg
         retNumber=int(code[2][7:])
         off=4*retNumber
         if(varToReg.get(code[0])==None):
-            reg=getReg()
+            reg=getReg(0)
             off=getOffset(code[0])
             f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
             regToVar[reg]=code[0]
@@ -610,12 +626,12 @@ for code in codeLines:
         off=scopeTab[0].table[func]["retSizeList"][retNumber]
 
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
-            reg=getReg()
+            reg=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
             regToVar[reg]="free"
         else:
             if(varToReg.get(code[2])==None):
-                reg=getReg()
+                reg=getReg(0)
                 if(code[2][0]=='t'):
                     off=getOffset(code[2])
                     f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
@@ -687,14 +703,11 @@ for code in codeLines:
             f.write("sw " + "$v0," + "0($" +str(varToReg[code[1]])+")\n")
         else:
             off=getOffset(code[1])
-            reg=getReg()
+            reg=getReg(0,code[1])
             f.write("lw $"+str(reg)+","+str(off)+"($fp)\n")
             regToVar[reg]=code[1]
             varToReg[code[1]]=reg
             f.write("sw " + "$v0," + "0($" +str(reg)+")\n")
-
-
-
 
     if(code[0]=="print_string"):
 #        f.write("start string printing\n")
@@ -720,7 +733,7 @@ for code in codeLines:
     # print (regToVar)
     # print("-----------------------------------------------")
     # print(varToReg)
-    f.write("###############################################\n")
+    # f.write("###############################################\n")
 
 
 

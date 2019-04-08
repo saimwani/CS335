@@ -13,7 +13,7 @@
     
     i:= 1
     
-    for True {
+    for 3>2 {
         if i >= 4 {
             break
         }

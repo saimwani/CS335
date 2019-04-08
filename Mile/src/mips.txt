@@ -1,0 +1,59 @@
+.text
+.globl main
+fun:
+	addi 	$sp,$sp,-4 
+	lw 	$2,12($fp) 
+	lw 	$3,8($fp) 
+	add 	$4,$2,$3 
+	sw 	$4,16($fp) 
+	add 	$sp,$fp,$0 
+	lw 	$fp,0($sp) 
+	addi 	$sp,$sp,4 
+	jr 	$ra 
+main:
+	addi 	$fp,$sp,0 
+	addi 	$sp,$sp,-56 
+	addi 	$3,$0,0 
+	addi 	$2,$3,0 
+	addi 	$4,$0,1 
+	addi 	$3,$4,0 
+	sw 	$2,-32($fp) 
+	sw 	$3,-36($fp) 
+label_1:
+	addi 	$2,$0,1 
+	blez 	$2,label_4 
+	lw 	$3,-36($fp) 
+	addi 	$4,$0,4 
+	slt 	$4,$3,$4 
+	xori 	$4,$4,1 
+	blez 	$4,label_3 
+	sw 	$2,-40($fp) 
+	sw 	$3,-36($fp) 
+	sw 	$4,-44($fp) 
+	j 	label_2 
+label_3:
+	lw 	$2,-36($fp) 
+	mult 	$2,$2 
+	mflo 	$3 
+	lw 	$4,-32($fp) 
+	add 	$5,$4,$3 
+	addi 	$4,$5,0 
+	addi 	$6,$0,1 
+	add 	$6,$2,$6 
+	addi 	$2,$6,0 
+	sw 	$2,-36($fp) 
+	addi 	$v0,$0,1 
+	sw 	$4,-32($fp) 
+	lw 	$a0,,-36($fp) 
+syscall
+	sw 	$3,-48($fp) 
+	sw 	$4,-36($fp) 
+	sw 	$5,-52($fp) 
+	sw 	$6,-56($fp) 
+	j 	label_1 
+label_4:
+label_2:
+	addi 	$v0,$0,1 
+	lw 	$a0,,-32($fp) 
+syscall
+	jr 	$ra 

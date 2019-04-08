@@ -1622,23 +1622,20 @@ def p_ForStmt(p):
         if(len(p[4].expTList)>1 or p[4].expTList[0][0]!="bool"):
             raise NameError("Only boolean value is allowed in this kind of for loop",p.lineno(1))
         label1=newLabel()
-        label2=newLabel()
+        p[0].code.append(["reset"])
         p[0].code.append([startFor[-1],":"])
         p[0].code+=p[4].code
-        p[0].code.append([label2,":"])
         p[0].code.append(["ifnot",p[4].expList[0],"goto",label1])
         p[0].code+=p[5].code
-        p[0].code.append(["goto",label2])
+        p[0].code.append(["goto",startFor[-1]])
         p[0].code.append([label1,":"])
-
     else:
-        label1=newLabel()
+        p[0].code.append(["reset"])
         p[0].code.append([startFor[-1],":"])
-        p[0].code.append([label1,":"])
         p[0].code+=p[4].code
-        p[0].code.append(["goto",label1])
-        if(p[4].info.get("hasRStmt") != None):
-            p[0].info["hasRStmt"]=1
+        p[0].code.append(["goto",startFor[-1]])
+        # if(p[4].info.get("hasRStmt") != None):
+        #     p[0].info["hasRStmt"]=1
     p[0].code.append([endFor[-1],":"])
     startFor=startFor[0:-1]
     endFor=endFor[0:-1]
@@ -1683,21 +1680,20 @@ def p_ForClause(p):
     if(len(p)==6 and (len(p[3].expTList)>1 or p[3].expTList[0][0]!="bool")):
         raise NameError("Only boolean value is allowed in expression in for loop",p.lineno(1))
     p[0].code=p[1].code
+    p[0].code.append(["reset"])
     p[0].code.append([startFor[-1],":"])
-    label1=newLabel()
-    p[0].code.append([label1,":"])
     if(len(p)==6):
         label2=newLabel()
         p[0].code+=p[3].code
         p[0].code.append(["ifnot",p[3].expList[0],"goto",label2])
         p[0].info["forLabelPass"]=[]
         p[0].info["forLabelPass"]+=p[5].code
-        p[0].info["forLabelPass"].append(["goto",label1])
+        p[0].info["forLabelPass"].append(["goto",startFor[-1]])
         p[0].info["forLabelPass"].append([label2,":"])
     else:
         p[0].info["forLabelPass"]=[]
         p[0].info["forLabelPass"]+=p[4].code
-        p[0].info["forLabelPass"].append(["goto",label1])
+        p[0].info["forLabelPass"].append(["goto",startFor[-1]])
 
 def p_error(p):
     if p:
