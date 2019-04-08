@@ -71,7 +71,7 @@ def getReg(a=None):
         if(regToVar[regReplace][0]=='t'):
             off=getOffset(regToVar[regReplace])
             f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
-        elif(not getType(varToReg[regReplace]):
+        elif(not getType(varToReg[regReplace])):
             off, control=getVarOffset(regToVar[regReplace])
             if(not control):
                 f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($gp)\n")
