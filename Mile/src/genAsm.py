@@ -219,9 +219,9 @@ for code in codeLines:
 
                             else:
                                 if(control==0):
-                                    f.write("subi " + "$"+ str(reg3) + "," + "$gp," + str(off)+"\n")
+                                    f.write("addi " + "$"+ str(reg3) + "," + "$gp," + str(-off)+"\n")
                                 else:
-                                    f.write("subi " + "$"+ str(reg3) + "," + "$fp," + str(off)+"\n")
+                                    f.write("addi " + "$"+ str(reg3) + "," + "$fp," + str(-off)+"\n")
                         regToVar[reg3]=code[4]
                         varToReg[code[4]]=reg3
                     else:
@@ -254,9 +254,9 @@ for code in codeLines:
                                     f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                             else:
                                 if(control==0):
-                                    f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                                    f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                                 else:
-                                    f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                                    f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
                         regToVar[reg2]=code[2]
                         varToReg[code[2]]=reg2
                     else:
@@ -288,9 +288,9 @@ for code in codeLines:
                                 f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                         else:
                             if(control==0):
-                                f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                                f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                             else:
-                                f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                                f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
                     regToVar[reg2]=code[2]
                     varToReg[code[2]]=reg2
                 else:
@@ -310,9 +310,9 @@ for code in codeLines:
 
                         else:
                             if(control==0):
-                                f.write("subi " + "$"+ str(reg3) + "," + "$gp," + str(off)+"\n")
+                                f.write("addi " + "$"+ str(reg3) + "," + "$gp," + str(-off)+"\n")
                             else:
-                                f.write("subi " + "$"+ str(reg3) + "," + "$fp," + str(off)+"\n")
+                                f.write("addi " + "$"+ str(reg3) + "," + "$fp," + str(-off)+"\n")
                     regToVar[reg3]=code[4]
                     varToReg[code[4]]=reg3
                 else:
@@ -347,9 +347,9 @@ for code in codeLines:
                             f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
-                            f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                         else:
-                            f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
                 regToVar[reg2]=code[2]
                 varToReg[code[2]]=reg2
             else:
@@ -376,9 +376,9 @@ for code in codeLines:
                             f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
-                            f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                         else:
-                            f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
                 regToVar[reg2]=code[3]
                 varToReg[code[3]]=reg2
             else:
@@ -412,9 +412,9 @@ for code in codeLines:
                         f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
                 else:
                     if(control==0):
-                        f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                        f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                     else:
-                        f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                        f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
             regToVar[reg2]=code[3]
             varToReg[code[3]]=reg2
         else:
@@ -454,9 +454,9 @@ for code in codeLines:
             else:
                 off, control=getVarOffset(code[3])
                 if(control==0):
-                    f.write("subi " + "$"+ str(reg2) + "," + "$gp," + str(off)+"\n")
+                    f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
                 else:
-                    f.write("subi " + "$"+ str(reg2) + "," + "$fp," + str(off)+"\n")
+                    f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
             regToVar[reg2]=code[3]
             varToReg[code[3]]=reg2
         else:
@@ -488,9 +488,9 @@ for code in codeLines:
                             f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
-                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$gp," + str(-off)+"\n")
                         else:
-                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$fp," + str(-off)+"\n")
                 regToVar[reg]=code[1]
                 varToReg[code[1]]=reg
             else:
@@ -518,9 +518,9 @@ for code in codeLines:
                             f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
-                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$gp," + str(-off)+"\n")
                         else:
-                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$fp," + str(-off)+"\n")
                 regToVar[reg]=code[1]
                 varToReg[code[1]]=reg
             else:
@@ -622,9 +622,9 @@ for code in codeLines:
                             f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
                     else:
                         if(control==0):
-                            f.write("subi " + "$"+ str(reg) + "," + "$gp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$gp," + str(-off)+"\n")
                         else:
-                            f.write("subi " + "$"+ str(reg) + "," + "$fp," + str(off)+"\n")
+                            f.write("addi " + "$"+ str(reg) + "," + "$fp," + str(-off)+"\n")
                 regToVar[reg]=code[2]
                 varToReg[code[2]]=reg
             else:
