@@ -1,27 +1,19 @@
  package main
  
- func fun(x,y int) (int){
-    return x+y
+ func fib(x int) (int){
+     print x
+     if ((x==1) || (x==0)){
+         y:=1
+         print y
+         return y
+     }
+     print 56
+     /* return (fib(x-1)+fib(x-2)) */
  }
 
- func main(){
-     var x,y int
-     var z,w int
-     var arr [3]int
-     sum:=0
-    
-    
-    i:= 1
-    
-    for 3>2 {
-        if i >= 4 {
-            break
-        }
-        sum= sum+ (i*i)
-        i=i+1
-        print i
-        /* print "\n" */
-     }
-     print sum
+ func main(){ 
+     y:=78
+     x:=fib(y)
+     print x
  }
 
