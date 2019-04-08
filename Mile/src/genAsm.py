@@ -624,7 +624,6 @@ for code in codeLines:
                 f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
 
     if(code[0]=="print_int"):
-        f.write("printing now \n")
         saveReg(2)
         f.write("addi "+ "$v0,$0,1\n" )  #print syscall is 1 , $v0 is $2
         saveReg(4)
