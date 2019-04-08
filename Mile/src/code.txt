@@ -1,0 +1,28 @@
+ fun :
+ temp#7 = vartemp#2 +int vartemp#3
+ vartemp#6 = temp#7
+ temp#8 = vartemp#2 +int vartemp#3
+ fun return temp#8 0
+ fun return vartemp#6 1
+ return
+ return
+ main :
+ vartemp#9 = 2
+ vartemp#10 = 3
+ temp#14 = vartemp#9 +int 2
+ temp#15 = 1
+ temp#15 = temp#15 *int 4
+ temp#15 = temp#15 +int vartemp#13
+ startf fun
+ param 10
+ param temp#14
+ param vartemp#10
+ param vartemp#13 12
+ param temp#15
+ call fun
+ endf fun
+ temp#16 = retval_1
+ temp#17 = retval_2
+ vartemp#11 = temp#16
+ vartemp#12 = temp#17
+ return

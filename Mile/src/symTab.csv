@@ -1,0 +1,50 @@
+
+Table Number,0
+
+Parent,0,=,
+
+fun,"{'takes': [['int'], ['int'], ['int'], ['arr3', 'int'], ['pointer', 'int']], '#total_parSize': 28, '#total_retSize': 8, 'parSizeList': [4, 4, 4, 12, 4], 'returns': [['int'], ['int']], 'retSizeList': [-36, -40], 'Scope': 1, 'type': ['func']}"
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 2, 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#6', 'type': ['int'], 'offset': 4}"
+arr,"{'tmp': 'vartemp#4', 'type': ['arr3', 'int'], 'offset': -12}"
+temp#8,"{'type': 'Temporary', 'offset': 12}"
+m,"{'tmp': 'vartemp#1', 'type': ['int'], 'offset': -32}"
+#total_size,{'type': 12}
+vartemp#1,{'type': 'm'}
+y,"{'tmp': 'vartemp#3', 'type': ['int'], 'offset': -24}"
+vartemp#3,{'type': 'y'}
+vartemp#2,{'type': 'x'}
+vartemp#5,{'type': 'ptr'}
+vartemp#4,{'type': 'arr'}
+vartemp#6,{'type': 'a'}
+fun,{'type': ['func']}
+x,"{'tmp': 'vartemp#2', 'type': ['int'], 'offset': -28}"
+ptr,"{'tmp': 'vartemp#5', 'type': ['pointer', 'int'], 'offset': -8}"
+temp#7,"{'type': 'Temporary', 'offset': 8}"
+
+Table Number,2
+
+Parent,2,=,0
+
+arr,"{'tmp': 'vartemp#13', 'type': ['arr3', 'int'], 'offset': 28}"
+z,"{'tmp': 'vartemp#11', 'type': ['int'], 'offset': 12}"
+vartemp#10,{'type': 'y'}
+vartemp#9,{'type': 'x'}
+temp#14,"{'type': 'Temporary', 'offset': 32}"
+temp#17,"{'type': 'Temporary', 'offset': 44}"
+temp#16,"{'type': 'Temporary', 'offset': 40}"
+#total_size,{'type': 44}
+vartemp#11,{'type': 'z'}
+y,"{'tmp': 'vartemp#10', 'type': ['int'], 'offset': 8}"
+vartemp#13,{'type': 'arr'}
+vartemp#12,{'type': 'w'}
+temp#15,"{'type': 'Temporary', 'offset': 36}"
+w,"{'tmp': 'vartemp#12', 'type': ['int'], 'offset': 16}"
+fun,{'type': ['func']}
+x,"{'tmp': 'vartemp#9', 'type': ['int'], 'offset': 4}"
+main,{'type': ['func']}

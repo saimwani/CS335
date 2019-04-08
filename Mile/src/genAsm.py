@@ -506,11 +506,16 @@ for code in codeLines:
         for index in range(2, 24):
             if (regToVar[index]=="free"):
                 continue
-            off=getOffset(regToVar[index])
-            if(varToReg[index][0]=='t' or not getType(varToReg[index]) ):
-                f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
+            off=0
+            if(regToVar[index][0]=='t'):
+                off=getOffset(regToVar[index])
+            else:
+                off,control=getVarOffset(regToVar[index])
+            if(regToVar[index][0]=='t' or not getType(regToVar[index]) ): ## Add here to control for global variables
+                f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
+            if(varToReg.get(regToVar[index])!=None):
+                del varToReg[regToVar[index]]
             regToVar[index]="free"
-            del varToReg[regToVar[index]]
 
         f.write("addi $sp,$sp,-4\n")
         f.write("sw $ra,0($sp)\n")
@@ -545,8 +550,9 @@ for code in codeLines:
         for index in range(2, 24):
             if (regToVar[index]=="free"):
                 continue
+            if(varToReg.get(regToVar[index])!=None):
+                del varToReg[regToVar[index]]
             regToVar[index]="free"
-            del varToReg[regToVar[index]]
             
         if(currentLabel=="main"):
             f.write("jr $ra\n")
