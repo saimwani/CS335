@@ -650,15 +650,16 @@ for code in codeLines:
 
 
     if(code[0]=="vscan_int"):
+        f.write("now we scanning\n")
         saveReg(2)
         f.write("addi "+ "$v0,$0,5\n" )  #scanint syscall is 5, $v0 is $2
-        f.write("syscall")
+        f.write("syscall\n")
         off, control=getVarOffset(code[1])
         if(not getType(code[1])):  #if basic type // only basic types are allowed anyways
             if(control==0):  # if global
                 f.write("sw " + "$v0," + str(-off)+"($gp)\n")  #scanned int is present in $v0
             else:
-                f.write("sw " + "$v0," + ","+str(-off)+"($fp)\n")
+                f.write("sw " + "$v0," +str(-off)+"($fp)\n")
         varToReg[code[1]]=2
         regToVar[2]=code[1]
 
