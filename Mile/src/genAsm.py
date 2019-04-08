@@ -673,6 +673,13 @@ for code in codeLines:
         varToReg[code[1]]=2
         regToVar[2]=code[1]
 
+
+    if(code[0]=="scan_int"):
+        c=0
+
+
+
+
     if(code[0]=="print_string"):
         f.write("start string printing\n")
         saveReg(2)
@@ -681,12 +688,12 @@ for code in codeLines:
         if(code[1][0]=="\""): #is a literal string
             msg=newMsg()
             st=""
-            for i in range(2, len(code)-1):
+            for i in range(1, len(code)):
                 if(i==len(code)-1):
                     st=st+code[i]
                     break
                 st=st+code[i]+" "
-            f.write(msg +": "+".asciiz \""+ st+ "\"\n" )
+            f.write(msg +": "+".asciiz "+ st+ "\n" )
             f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
             f.write("syscall\n")
 
