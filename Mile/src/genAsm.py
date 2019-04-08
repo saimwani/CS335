@@ -41,6 +41,16 @@ regReplaceFloat=0
 currentFunc=""
 currentLabel=""
 
+msgCount=0
+
+def newMsg(a=None):
+    global msgCount
+    newm="msg#"+str(msgCount)
+    msgCount+=1
+    return newm
+
+
+
 def getOffset(name):
     for x in scopeTab:
         if (scopeTab[x].table.get(name)==None):
@@ -662,6 +672,21 @@ for code in codeLines:
                 f.write("sw " + "$v0," +str(-off)+"($fp)\n")
         varToReg[code[1]]=2
         regToVar[2]=code[1]
+
+    if(code[0]=="print_string"):
+        f.write("start string printing\n")
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,4\n" )  #print_string syscall is 4, $v0 is $2
+        saveReg(4)
+        if(code[1][0]=="\""): #is a literal string
+            msg=newMsg()
+            f.write(msg +": "+".asciiz "+ code[1] +"\n" )
+            f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
+            f.write("syscall\n")
+
+        else:
+            xxx=0
+
 
 
 
