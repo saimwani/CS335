@@ -660,7 +660,7 @@ for code in codeLines:
 
 
     if(code[0]=="vscan_int"):
-        f.write("now we scanning\n")
+        f.write("now we V_scanning\n")
         saveReg(2)
         f.write("addi "+ "$v0,$0,5\n" )  #scanint syscall is 5, $v0 is $2
         f.write("syscall\n")
@@ -675,7 +675,19 @@ for code in codeLines:
 
 
     if(code[0]=="scan_int"):
-        c=0
+        f.write("now we scan_scanning\n")
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,5\n" )  #scanint syscall is 5, $v0 is $2
+        f.write("syscall\n")
+        if(varToReg.get(code[1])!=None):
+            f.write("sw " + "$v0," + "0($" +str(varToReg[code[1]])+")\n")
+        else:
+            off=getOffset(code[1])
+            reg=getReg()
+            f.write("lw $"+str(reg)+","+str(off)+"($fp)\n")
+            regToVar[reg]=code[1]
+            varToReg[code[1]]=reg
+            f.write("sw " + "$v0," + "0($" +str(reg)+")\n")
 
 
 
