@@ -1,0 +1,43 @@
+
+Table Number,0
+
+Parent,0,=,
+
+fib,"{'takes': [['int']], '#total_parSize': 4, '#total_retSize': 4, 'parSizeList': [4], 'returns': [['int']], 'retSizeList': [-12], 'Scope': 1, 'type': ['func']}"
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 3, 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+vartemp#1,{'type': 'x'}
+#total_size,{'type': 32}
+fib,{'type': ['func']}
+temp#8,"{'type': 'Temporary', 'offset': 28}"
+x,"{'tmp': 'vartemp#1', 'type': ['int'], 'offset': -8}"
+temp#5,"{'type': 'Temporary', 'offset': 16}"
+temp#9,"{'type': 'Temporary', 'offset': 32}"
+temp#7,"{'type': 'Temporary', 'offset': 24}"
+temp#6,"{'type': 'Temporary', 'offset': 20}"
+
+Table Number,2
+
+Parent,2,=,1
+
+fib,{'type': ['func']}
+temp#3,"{'type': 'Temporary', 'offset': 8}"
+temp#2,"{'type': 'Temporary', 'offset': 4}"
+temp#4,"{'type': 'Temporary', 'offset': 12}"
+
+Table Number,3
+
+Parent,3,=,0
+
+#total_size,{'type': 12}
+temp#11,"{'type': 'Temporary', 'offset': 8}"
+fib,{'type': ['func']}
+vartemp#10,{'type': 'y'}
+vartemp#12,{'type': 'x'}
+y,"{'tmp': 'vartemp#10', 'type': ['int'], 'offset': 4}"
+x,"{'tmp': 'vartemp#12', 'type': ['int'], 'offset': 12}"
+main,{'type': ['func']}

@@ -1,0 +1,34 @@
+fib :
+temp#2 = vartemp#1 ==int 0
+temp#3 = vartemp#1 ==int 1
+temp#4 = temp#2 ||bool temp#3
+ifnot temp#4 goto label_1
+fib return 1 0
+return
+label_1 :
+temp#5 = vartemp#1 -int 1
+startf fib
+param temp#5
+call fib
+endf fib
+temp#6 = retval_1
+temp#7 = vartemp#1 -int 2
+startf fib
+param temp#7
+call fib
+endf fib
+temp#8 = retval_1
+temp#9 = temp#6 +int temp#8
+fib return temp#9 0
+return
+return
+main :
+vartemp#10 = 5
+startf fib
+param 7
+call fib
+endf fib
+temp#11 = retval_1
+vartemp#12 = temp#11
+print_int vartemp#12
+return

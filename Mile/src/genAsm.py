@@ -78,6 +78,8 @@ def getReg(a,b=None):
         for i in range(2, 26):
             if (regToVar[i]=="free"):
                 return i
+        while(regToVar[regReplace]=="const"):
+            regReplace+=1
         if(regToVar[regReplace][0]=='t'):
             off=getOffset(regToVar[regReplace])
             f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
@@ -243,11 +245,12 @@ for code in codeLines:
 
                     reg2=getReg(0)
                     f.write("addi " + "$"+ str(reg2) + ",$0," +code[2]+"\n")
-                    regToVar[reg2]="free"
+                    regToVar[reg2]="const"
                     reg1=getReg(0,code[0])
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
+                    regToVar[reg2]="free"
                 else:
                     xxxyyy=0
 
@@ -278,11 +281,12 @@ for code in codeLines:
 
                     reg3=getReg(0)
                     f.write("addi " + "$"+ str(reg3) + ",$0," +code[4]+"\n")
-                    regToVar[reg3]="free"
+                    regToVar[reg3]="const"
                     reg1=getReg(0,code[0])
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
                     writeInstrBin(reg1, reg2, reg3, op)
+                    regToVar[reg3]="free"
                 else:
                     xxxyyy=0
         else:  # t,t or t,v, or v,t, or v,v
@@ -627,7 +631,8 @@ for code in codeLines:
 
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg=getReg(0)
-            f.write("addi "+ "$" +str(reg2)+",$0," + code[1] +"\n")
+            f.write("addi "+ "$" +str(reg)+",$0," + code[2] +"\n")
+            f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
             regToVar[reg]="free"
         else:
             if(varToReg.get(code[2])==None):
@@ -650,10 +655,8 @@ for code in codeLines:
                 regToVar[reg]=code[2]
                 varToReg[code[2]]=reg
             else:
-
-
                 reg=varToReg[code[2]]
-                f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
+            f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
 
     if(code[0]=="print_int"):
         saveReg(2)

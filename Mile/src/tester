@@ -1,19 +1,15 @@
  package main
  
  func fib(x int) (int){
-     print x
-     if ((x==1) || (x==0)){
-         y:=1
-         print y
-         return y
+     if ((x==0) || (x==1)){
+         return 1
      }
-     print 56
-     /* return (fib(x-1)+fib(x-2)) */
+     return fib(x-1)+fib(x-2)
  }
 
  func main(){ 
-     y:=78
-     x:=fib(y)
+     y:=5
+     x:=fib(7)
      print x
  }
 
