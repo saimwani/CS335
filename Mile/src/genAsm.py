@@ -680,7 +680,13 @@ for code in codeLines:
         saveReg(4)
         if(code[1][0]=="\""): #is a literal string
             msg=newMsg()
-            f.write(msg +": "+".asciiz "+ code[1] +"\n" )
+            st=""
+            for i in range(2, len(code)-1):
+                if(i==len(code)-1):
+                    st=st+code[i]
+                    break
+                st=st+code[i]+" "
+            f.write(msg +": "+".asciiz \""+ st+ "\"\n" )
             f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
             f.write("syscall\n")
 
