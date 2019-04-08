@@ -134,6 +134,23 @@ def writeInstrBin(reg1, reg2, reg3, op):
         f.write("slt "+"$"+str(reg1)+",$" +str(reg2)+",$" +str(reg3)+"\n"+"slt " +"$" + str(reg4)+",$"+ str(reg3)+ ",$"+str(reg2)+ "\n")
         f.write("or "+"$"+str(reg1)+",$" +str(reg4)+",$" +str(reg1)+"\n")
 
+def saveReg(index):
+    if(regToVar[index]=="free"):
+        return
+    if(regToVar[index][0]=='t'):
+        off=getOffset(regToVar[index])
+        f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
+    elif(not getType(regToVar[index])):
+        off,control=getVarOffset(regToVar[index])
+        if (not control):
+            f.write("sw " + "$"+ str(index) + "," + str(-off)+"($gp)\n")
+        else:
+            f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
+    if(varToReg.get(regToVar[index])!=None):
+        del varToReg[regToVar[index]]
+    regToVar[index]="free"
+
+
 
 f=open('mips.txt', 'wr')
 
@@ -297,7 +314,7 @@ for code in codeLines:
             else:
                 xxxyyy=0
 
-    if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):
+    if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):  #CHECK
         reg1=getReg()
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
@@ -601,8 +618,40 @@ for code in codeLines:
                 regToVar[reg]=code[2]
                 varToReg[code[2]]=reg
             else:
+
+
                 reg=varToReg[code[2]]
                 f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
+
+    if(code[0]=="print_int"):
+        f.write("printing now \n")
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,1\n" )  #print syscall is 1 , $v0 is $2
+        saveReg(4)
+        if(varToReg.get(code[1])==None):
+            if(code[1][0]=='t'):
+                off=getOffset(code[1])
+                f.write("lw " + "$a0,"+ str(-off)+"($fp)\n")  #CHECK ABOVE
+                varToReg[code[1]]=4
+                regToVar[4]=code[1]
+            elif(code[1][0]=='v'):
+                off, control=getVarOffset(code[1])
+                if(not getType(code[1])):  #if basic type // only basic types are allowed anyways
+                    if(control==0):  # if global
+                        f.write("lw " + "$a0," + str(-off)+"($gp)\n")
+                    else:
+                        f.write("lw " + "$a0," + ","+str(-off)+"($fp)\n")
+                varToReg[code[1]]=4
+                regToVar[4]=code[1]
+            else:  #is a constant
+                f.write("addi " + "$a0,$0,"+ code[1]+"\n")   #place constant integer into $4
+        else:
+            f.write("add " + "$a0,$0,$"+ str(varToReg[code[1]]) +"\n")  #put integer to be printed into $4
+        f.write("syscall\n")
+
+
+
+
 
 
 f.close()
