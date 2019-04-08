@@ -65,12 +65,18 @@ def getType(vartemp):
 
 def getReg(a=None):
     if (a==None):
-        for i in range(2, 24):
+        for i in range(2, 26):
             if (regToVar[i]=="free"):
                 return i
-        off=getOffset(regToVar[regReplace])
-        if(varToReg[regReplace][0]=='t' or not getType(varToReg[regReplace]) ):
+        if(regToVar[regReplace][0]=='t'):
+            off=getOffset(regToVar[regReplace])
             f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
+        elif(not getType(varToReg[regReplace]):
+            off, control=getVarOffset(regToVar[regReplace])
+            if(not control):
+                f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($gp)\n")
+            else:
+                f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
         del varToReg[regToVar[regReplace]]
         org=regReplace
         regReplace=(regReplace%24) + 2
@@ -132,12 +138,12 @@ def writeInstrBin(reg1, reg2, reg3, op):
 f=open('mips.txt', 'wr')
 
 f.write(".text\n.globl main\n")
-
 for code in codeLines:
     if (len(code) == 2 and code[1]==":"):
 	if(code[0]=="main"):
             currentLabel="main"
         f.write(code[0]+code[1]+"\n")
+        f.write("addi "+ "$fp,$sp,0\n")
         if (scopeTab[0].table.get(code[0])!= None):
             scope=scopeTab[0].table[code[0]]["Scope"]
             f.write("addi "+"$sp,"+"$sp,"+"-"+str(scopeTab[scope].table["#total_size"]["type"])+"\n")
@@ -503,16 +509,18 @@ for code in codeLines:
 
     if(code[0]=="call"):
         ## Reset the reg-var maps
-        for index in range(2, 24):
+        for index in range(2, 26):
             if (regToVar[index]=="free"):
                 continue
-            off=0
             if(regToVar[index][0]=='t'):
                 off=getOffset(regToVar[index])
-            else:
-                off,control=getVarOffset(regToVar[index])
-            if(regToVar[index][0]=='t' or not getType(regToVar[index]) ): ## Add here to control for global variables
                 f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
+            elif(not getType(regToVar[index])):
+                off,control=getVarOffset(regToVar[index])
+                if (not control):
+                    f.write("sw " + "$"+ str(index) + "," + str(-off)+"($gp)\n")
+                else:
+                    f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
             if(varToReg.get(regToVar[index])!=None):
                 del varToReg[regToVar[index]]
             regToVar[index]="free"
@@ -547,13 +555,13 @@ for code in codeLines:
 
     if(len(code)==1 and code[0]=="return"):
         ## Reset reg-var maps
-        for index in range(2, 24):
+        for index in range(2, 26):
             if (regToVar[index]=="free"):
                 continue
             if(varToReg.get(regToVar[index])!=None):
                 del varToReg[regToVar[index]]
             regToVar[index]="free"
-            
+
         if(currentLabel=="main"):
             f.write("jr $ra\n")
             currentLabel=""
