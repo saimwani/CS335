@@ -21,13 +21,14 @@ for i in range(0, len(codeLines)):
 
 codeLines=codeLines[indexFirst:indexMain+1]+codeLines[0:indexFirst]+codeLines[indexMain+1:]
 
+f.close()
 ring=""
-f=open('codeFixed.txt', 'wr')
+f=open('code.txt', 'wr')
 for code in codeLines:
     for x in range (0, len(code)):
         if(x==len(code)-1):
             ring=ring+code[x]
-            print(ring +"\n")
+            # print(ring +"\n")
             break
         ring=ring+code[x]+" "
 
@@ -35,8 +36,3 @@ for code in codeLines:
     ring=""
     f.write("\n")
 f.close()
-
-
-
-#for code in codeLines:
-#    if (len(code) == 2

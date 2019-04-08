@@ -1,15 +1,22 @@
  package main
- func fun(m,x,y int,arr [3]int, ptr *int) (int,int) {
-     var a int
-     a=x+y
-     return (x+y),a
+ 
+ /* func fun(m,x,y int,arr [3]int, ptr *int) (int,int) { */
+ /*     var a int */
+ /*     a=x+y */
+ /*     return (x+y),a */
+ /* } */
+
+ func fun(x,y int) (int){
+    return x+y
  }
+
  func main(){
      var x,y int
      var z,w int
      var arr [3]int
      x=2
      y=3
-     (z),w=fun(10,x+2,y,arr,&(arr[1]))
+     w=fun(x+2,y)
+     print w
  }
 
