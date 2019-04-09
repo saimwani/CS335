@@ -15,7 +15,7 @@ for i in range(0, len(codeLines)):
     if((len(codeLines[i])==2 and codeLines[i][1]==":") and (flag==0)):
         indexFirst=i
         flag=1
-    elif(codeLines[i][0]=="main"):
+    if(codeLines[i][0]=="main"):
         indexMain=i
         break
 
