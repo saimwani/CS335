@@ -14,6 +14,8 @@ f.close()
 f=open('mips.txt', 'wr')
 for x in codeLines:
 	if(len(x)==1):
+		if(x[0]=="syscall"):
+			f.write("\t")
 		f.write(x[0]+"\n")
 	elif(x[0]==".globl"):
 		f.write(x[0]+" "+x[1]+"\n")
