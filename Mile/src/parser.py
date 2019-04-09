@@ -457,7 +457,7 @@ def p_VarSpec(p):
     if (len(p)==5):
         for i in range(0,len(p[4].expTList)):
             if(not (p[4].expTList[i][0] in basicTypes or p[4].expTList[i][0]=="pointer")):
-                raise NameError ("Invalid Assignment")
+                raise NameError ("Invalid Assignment",p.lineno(1))
 
     if(isinstance(p[2],str) and p[2]!="=" and not p[2] in scopeTab[currentScope].typeList):
         raise NameError("Invalid type of identifier "+p[2], p.lineno(1))
@@ -489,7 +489,7 @@ def p_VarSpec(p):
             raise NameError("Imbalanced assignment", p.lineno(1))
         for i in range(0,len(p[1].idList)):
             if(p[4].expTList[i] != scopeTab[currentScope].table[p[1].idList[i]]["type"]):
-                raise ("Mismatch of type for "+p[1].idList[i])
+                raise NameError("Mismatch of type for "+p[1].idList[i],p.lineno(1))
         p[0]=node()
         p[0].code=p[1].code+p[4].code
         for i in range(0,len(p[1].idList)):

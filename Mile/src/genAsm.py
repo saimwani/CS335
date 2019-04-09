@@ -35,7 +35,7 @@ for i in range(0,32):
 varToReg={}
 varToRegFloat={}
 
-regReplace=1
+regReplace=2
 regReplaceFloat=0
 
 currentFunc=""
