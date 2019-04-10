@@ -1046,7 +1046,6 @@ def p_PrimaryExpr(p):
         p[0].expList=p[1].expList
     elif(len(p)==2):
         if(checkUse(p[1],"anywhere")==False):
-            print(p[1])
             raise NameError("Undeclared identifier "+p[1], p.lineno(1))
         p[0]=node()
         p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")-1].table[p[1]]["type"])
