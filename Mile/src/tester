@@ -1,15 +1,7 @@
- package main
- 
- func fib(x int) (int){
-     if ((x==0) || (x==1)){
-         return 1
-     }
-     return fib(x-1)+fib(x-2)
- }
-
- func main(){ 
-     y:=5
-     x:=fib(7)
-     print x
- }
-
+package main
+func f(x int) (int) {
+	return x
+}
+func main() {
+	print f(1)
+}

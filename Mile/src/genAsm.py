@@ -653,12 +653,12 @@ for code in codeLines:
     if(len(code)==4 and code[1]=="return"):
         retNumber=int(code[3])
         func=code[0]
-        off=scopeTab[0].table[func]["retSizeList"][retNumber]
+        retOff=scopeTab[0].table[func]["retSizeList"][retNumber]
 
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg=getReg(0)
             f.write("addi "+ "$" +str(reg)+",$0," + code[2] +"\n")
-            f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
+            f.write("sw $"+str(reg)+","+str(-retOff)+"($fp)\n")
             regToVar[reg]="free"
         else:
             if(varToReg.get(code[2])==None):
@@ -682,7 +682,7 @@ for code in codeLines:
                 varToReg[code[2]]=reg
             else:
                 reg=varToReg[code[2]]
-            f.write("sw $"+str(reg)+","+str(-off)+"($fp)\n")
+            f.write("sw $"+str(reg)+","+str(-retOff)+"($fp)\n")
 
     if(code[0]=="print_int"):
         saveReg(2)
