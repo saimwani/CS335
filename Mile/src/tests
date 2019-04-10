@@ -19,24 +19,24 @@ func main() {
 	a3.next = &a4
 	a4.next = &nil
 	var head ll
-    head.a=a1.a
-    head.next=a1.next
-    /* var found bool = False */
-    /* for True { */
-		/* if head == nil { */
-			/* break */
-		/* } */
-		/* if head.a == 3 { */
+    head.a = a1.a
+    head.next = a1.next
+   
+    found := False
+	for False {
+		if True {
+			break
+		}
+		if head.a == 3 {
 			/* found = True */
-			/* break */
-		/* } */
-		/* head = head.next */
-	/* } */
+			break
+		}
+	}
 
-	/* if found { */
-	/* 	print 0 */
-	/* } else { */
-	/* 	print 1 */
-	/* } */
+	if found {
+		print 0
+	} else {
+		print 1
+	}
 }
 

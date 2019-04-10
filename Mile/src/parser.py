@@ -555,7 +555,8 @@ def p_FuncName(p):
     scopeTab[0].insert(p[1],["func"])
     scopeTab[0].updateList(p[1],"Scope",currentFScope)
     currentFunc=p[1]
-    p[0].code=[[p[1],":"]]
+    p[0].code=[["resetF"]]
+    p[0].code.append([p[1],":"])
 
 def p_Type(p):
     """

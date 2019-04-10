@@ -25,12 +25,10 @@ reserved={
 	'struct' : 'STRUCT',
 	'switch' : 'SWITCH',
 	'type' : 'TYPE',
-	'var' : 'VAR',
-        'True' : 'TRUE',
-        'False' : 'FALSE',
+	'var' : 'VAR'
 }
 
-tokens=['ID','INT','FLOAT','STRING',
+tokens=['ID','INT','FLOAT','STRING','TRUE','FALSE',
         'ADD','SUB','MUL','DIV','MOD',
         'AND','OR','XOR','SHL','SHR','AND_NOT',
         'ADD_ASSIGN','SUB_ASSIGN','MUL_ASSIGN','DIV_ASSIGN','MOD_ASSIGN',
@@ -61,6 +59,18 @@ def t_FLOAT(t):
 
 def t_INT(t):
     r'0(x|X)[0-9A-Fa-f]+ | [1-9]\d* | 0[0-7]*'
+    global prev_token
+    prev_token=t.type
+    return t
+
+def t_TRUE(t):
+    r'True'
+    global prev_token
+    prev_token=t.type
+    return t
+
+def t_FALSE(t):
+    r'False'
     global prev_token
     prev_token=t.type
     return t
@@ -350,7 +360,7 @@ def t_RUNE(t):
 def t_NEWLINE(t):
     r'\n+'
     global prev_token
-    if(prev_token=="ID" or prev_token=="INT" or prev_token=="FLOAT" or prev_token=="IMAG" or prev_token=="RUNE" or prev_token=="STRING" or prev_token=="INC" or prev_token=="DEC" or prev_token=="RBRACE" or prev_token=="RBRACK" or prev_token=="RPAREN"):
+    if(prev_token=="ID" or prev_token== "FALSE" or prev_token=="TRUE" or prev_token=="INT" or prev_token=="FLOAT" or prev_token=="IMAG" or prev_token=="RUNE" or prev_token=="STRING" or prev_token=="INC" or prev_token=="DEC" or prev_token=="RBRACE" or prev_token=="RBRACK" or prev_token=="RPAREN"):
         t.type="SEMICOLON"
         t.value=";"
         prev_token=t.type

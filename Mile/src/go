@@ -14,7 +14,7 @@ if [ "$1" ==  "--help" ]; then
 "
 else
     python parser.py $1
-    python 3ACFix.py
+    #python 3ACFix.py
     python genAsm.py 
     python fixcode.py 
     spim -file "mips.txt"
