@@ -63,7 +63,7 @@ def checkUse(ident,checkWhat):
     if(checkWhat=='anywhere'):
         for x in scopeList[::-1]:
             if(scopeTab[x].search(ident)!=None):
-                return x
+                return x+1
         return False
 
 def openS():
@@ -555,7 +555,6 @@ def p_FuncName(p):
     scopeTab[0].insert(p[1],["func"])
     scopeTab[0].updateList(p[1],"Scope",currentFScope)
     currentFunc=p[1]
-    p[0].code=[["resetF"]]
     p[0].code.append([p[1],":"])
 
 def p_Type(p):
@@ -1049,19 +1048,19 @@ def p_PrimaryExpr(p):
         if(checkUse(p[1],"anywhere")==False):
             raise NameError("Undeclared identifier "+p[1], p.lineno(1))
         p[0]=node()
-        p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")].table[p[1]]["type"])
+        p[0].expTList.append(scopeTab[checkUse(p[1],"anywhere")-1].table[p[1]]["type"])
         p[0].info["memory"]=1
         p[0].info["isID"]=p[1]
-        x=checkUse(p[1],'anywhere')
+        x=checkUse(p[1],'anywhere')-1
         temp1=scopeTab[x].table[p[1]]["type"]
         if(temp1!=["func"]):
-            p[0].expList=[scopeTab[checkUse(p[1],'anywhere')].table[p[1]]["tmp"]]
+            p[0].expList=[scopeTab[checkUse(p[1],'anywhere')-1].table[p[1]]["tmp"]]
         else:
             p[0].expList=["func"]
         if(scopeTab[x].table.get(temp1[0])!=None):
             if(scopeTab[x].table[temp1[0]]["type"]==["struct"]):
                 var1=newTemp()
-                p[0].code.append([var1,"=", "&",scopeTab[checkUse(p[1],'anywhere')].table[p[1]]["tmp"]])
+                p[0].code.append([var1,"=", "&",scopeTab[checkUse(p[1],'anywhere')-1].table[p[1]]["tmp"]])
                 p[0].info["deref"]=1
                 p[0].expList=[var1]
         elif(temp1[0][0:3]=="arr" or temp1[0]=="pointer"):
