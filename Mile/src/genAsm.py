@@ -183,7 +183,7 @@ def resetF(a=None):
 
 f=open('mips.txt', 'wr')
 
-f.write(".text\n.globl main\n")
+f.write(".data\n .text\n.globl main\n")
 for code in codeLines:
     temp=""
     for x in code:
@@ -451,7 +451,7 @@ for code in codeLines:
 
     if(code[0]=="reset"):
         reset()
-    
+
     if(code[0]=="resetF"):
         resetF()
 

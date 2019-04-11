@@ -11,6 +11,25 @@ for i in content:
     j+=1
 f.close()
 
+saveMsgs=[]
+
+
+leng=len(codeLines)
+
+for i in range(0, leng):
+    if(i==len(codeLines)):
+        break
+    #print(i, leng, len(codeLines), "\n")
+    if (codeLines[i][0][0:4]=="msg#"):
+        saveMsgs.append(codeLines.pop(i))
+        leng-=1
+print saveMsgs
+
+
+
+codeLines=[codeLines[0]]+saveMsgs+codeLines[1:]
+#print codeLines
+
 f=open('mips.txt', 'wr')
 for x in codeLines:
 	if(len(x)==1):
