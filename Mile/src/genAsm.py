@@ -35,7 +35,7 @@ for i in range(0,32):
 varToReg={}
 varToRegFloat={}
 
-regReplace=1
+regReplace=2
 regReplaceFloat=0
 
 currentFunc=""
@@ -81,6 +81,8 @@ def getReg(a,b=None):
                 return i
         while(regToVar[regReplace]=="const"):
             regReplace+=1
+            if(regReplace==26):
+                regReplace=2
         if(regToVar[regReplace][0]=='t'):
             off=getOffset(regToVar[regReplace])
             f.write("sw " + "$"+ str(regReplace) + "," + str(-off)+"($fp)\n")
