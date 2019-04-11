@@ -3,11 +3,13 @@ package main
 func main(){
    var t int = 10
    var p *int
-   var z int
+   var y *int
    p=&t
-   z= *p
-   print z
-   print "\n"
+   y=&t
+   if p!=y {
+   print "correct\n"
+   }
+   /* print "\n" */
 }
 
 

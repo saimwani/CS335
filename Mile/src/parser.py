@@ -93,13 +93,15 @@ def closeS():
     scopeList=scopeList[0:-1]
 
 def checkOprn(exp1,binop,exp2):
+    if(exp1!=exp2):
+        return None
     if(len(exp1)>1 or len(exp2)>1):
+        if(exp1[0]==exp2[0] and exp1[0]=="pointer" and (binop[0]=="==" or binop[0]=="!=")):
+            return ["bool"]
         return None
     binop=binop[0]
     exp1=exp1[0]
     exp2=exp2[0]
-    if(exp1!=exp2):
-        return None
     if(binop=="||" or binop=="&&"):
         if(exp1=="bool"):
             return [exp1]
@@ -923,6 +925,8 @@ def p_Expression(p):
         p[0].info["memory"]=0
         var3=newTemp()
         p[0].expList=[var3]
+        if(p[3].expTList[0][0]=="pointer"):
+            p[3].expTList[0][0]="ptr"
         p[0].code.append([var3,"=",var1,p[2].expTList[0][0]+p[3].expTList[0][0],var2])
 
 def p_UnaryExpr(p):

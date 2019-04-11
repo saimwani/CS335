@@ -9,14 +9,22 @@ Table Number,1
 
 Parent,1,=,0
 
-#total_size,{'type': 24}
-z,"{'tmp': 'vartemp#3', 'type': ['int'], 'offset': 12}"
+#total_size,{'type': 32}
 vartemp#1,{'type': 't'}
 p,"{'tmp': 'vartemp#2', 'type': ['pointer', 'int'], 'offset': 8}"
-vartemp#3,{'type': 'z'}
+vartemp#3,{'type': 'y'}
 vartemp#2,{'type': 'p'}
 t,"{'tmp': 'vartemp#1', 'type': ['int'], 'offset': 4}"
+y,"{'tmp': 'vartemp#3', 'type': ['ptr', 'int'], 'offset': 12}"
 main,{'type': ['func']}
 temp#5,"{'type': 'Temporary', 'offset': 20}"
 temp#4,"{'type': 'Temporary', 'offset': 16}"
+
+Table Number,2
+
+Parent,2,=,1
+
+temp#8,"{'type': 'Temporary', 'offset': 32}"
+main,{'type': ['func']}
+temp#7,"{'type': 'Temporary', 'offset': 28}"
 temp#6,"{'type': 'Temporary', 'offset': 24}"

@@ -1,25 +1,33 @@
 .data
-	msg0: 	.asciiz 	"\n" 
+	msg0: 	.asciiz 	"correct\n" 
 .text
 .globl main
 main:
 	addi 	$fp,$sp,0 
-	addi 	$sp,$sp,-24 
+	addi 	$sp,$sp,-32 
 	addi 	$2,$0,10 
 	addi 	$2,$2,0 
 	addi 	$4,$fp,-4 
 	addi 	$3,$4,0 
+	addi 	$4,$fp,-8 
 	sw 	$2,-4($fp) 
 	sw 	$3,0($4) 
-	addi 	$4,$fp,-8 
-	lw 	$2,0($4) 
-	lw 	$5,0($2) 
-	addi 	$6,$5,0 
+	addi 	$4,$fp,-4 
+	addi 	$2,$4,0 
+	addi 	$4,$fp,-12 
+	sw 	$2,0($4) 
+	addi 	$5,$fp,-8 
+	lw 	$4,0($5) 
+	addi 	$7,$fp,-12 
+	lw 	$6,0($7) 
+	slt 	$8,$4,$6 
+	slt 	$9,$6,$4 
+	or 	$8,$9,$8 
+	blez 	$8,label_1 
 	sw 	$2,-20($fp) 
-	addi 	$v0,$0,1 
-	add 	$a0,$0,$6 
-	syscall
 	addi 	$v0,$0,4 
+	sw 	$4,-24($fp) 
 	la 	$a0,msg0 
 	syscall
+label_1:
 	jr 	$ra 

@@ -1,4 +1,4 @@
-Created by PLY version 3.7 (http://www.dabeaz.com/ply)
+Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Grammar
 
@@ -5011,6 +5011,7 @@ state 213
     (120) PrimaryExpr -> ID .
 
     DEFINE          reduce using rule 28 (IdentifierList -> ID .)
+    COMMA           shift and go to state 41
     DOT             reduce using rule 120 (PrimaryExpr -> ID .)
     LBRACK          reduce using rule 120 (PrimaryExpr -> ID .)
     LPAREN          reduce using rule 120 (PrimaryExpr -> ID .)
@@ -5036,7 +5037,6 @@ state 213
     AND             reduce using rule 120 (PrimaryExpr -> ID .)
     AND_NOT         reduce using rule 120 (PrimaryExpr -> ID .)
     LBRACE          reduce using rule 120 (PrimaryExpr -> ID .)
-    COMMA           reduce using rule 120 (PrimaryExpr -> ID .)
     ADD_ASSIGN      reduce using rule 120 (PrimaryExpr -> ID .)
     SUB_ASSIGN      reduce using rule 120 (PrimaryExpr -> ID .)
     MUL_ASSIGN      reduce using rule 120 (PrimaryExpr -> ID .)
@@ -5049,7 +5049,7 @@ state 213
     ASSIGN          reduce using rule 120 (PrimaryExpr -> ID .)
     SEMICOLON       reduce using rule 120 (PrimaryExpr -> ID .)
 
-  ! COMMA           [ shift and go to state 41 ]
+  ! COMMA           [ reduce using rule 120 (PrimaryExpr -> ID .) ]
 
 
 state 214

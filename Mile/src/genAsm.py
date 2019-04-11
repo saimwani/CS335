@@ -196,7 +196,7 @@ f.write(".data\n .text\n.globl main\n")
 count=0
 for code in codeLines:
     count=count+1
-    #f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
+    # f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
     #print (count,"\n",regToVar)
     #print ("++++++++++++++++++++++++++++++++")
     temp=""
@@ -314,8 +314,8 @@ for code in codeLines:
                 else:
                     xxxyyy=0
         else:  # t,t or t,v, or v,t, or v,v
-            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer or rune  op
-                op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
+            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-4]=='b' or code[3][-3]=='p'):  #integer or rune  op
+                op=code[3][:-3] if (code[3][-3]=="i" or code[3][-3]=='p') else code[3][:-4]
                 if(varToReg.get(code[2])==None):
                     reg2=getReg(0)
                     if(code[2][0]=='t'):
@@ -370,7 +370,6 @@ for code in codeLines:
         #reg1=getReg(0,code[0])
         #regToVar[reg1]=code[0]
         #varToReg[code[0]]=reg1
-
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg2=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[2] +"\n")
@@ -397,9 +396,7 @@ for code in codeLines:
                 varToReg[code[2]]=reg2
             else:
                 reg2=varToReg[code[2]]
-        
         #f.write("addi "+"$"+str(reg1)+ ",$" + str(reg2) + ","+ "0\n")
-        
         if(code[0][0]=='t' or not getType(code[0])):
             reg1=getReg(0,code[0])
             regToVar[reg1]=code[0]
@@ -452,12 +449,18 @@ for code in codeLines:
             if(code[1][0]=='t'):
                 off=getOffset(code[1])
                 f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
+            elif(code[1][0]=='v'):
+                off, control=getVarOffset(code[1])
+                if(control==0):
+                    f.write("addi " + "$"+ str(reg1) + "," + "$gp," + str(-off)+"\n")
+                else:
+                    f.write("addi " + "$"+ str(reg1) + "," + "$fp," + str(-off)+"\n")
             regToVar[reg1]=code[1]
             varToReg[code[1]]=reg1
         else:
             reg1=varToReg[code[1]]
         resetVars()
-        print(code[1],reg1)
+        # print(code[1],reg1)
         f.write("sw $"+str(reg2)+",0($"+str(reg1)+")\n")
 
     if(len(code)==4 and code[2]=="*"):
