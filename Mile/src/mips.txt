@@ -1,0 +1,25 @@
+.data
+	msg0: 	.asciiz 	"\n" 
+.text
+.globl main
+main:
+	addi 	$fp,$sp,0 
+	addi 	$sp,$sp,-24 
+	addi 	$2,$0,10 
+	addi 	$2,$2,0 
+	addi 	$4,$fp,-4 
+	addi 	$3,$4,0 
+	sw 	$2,-4($fp) 
+	sw 	$3,0($4) 
+	addi 	$4,$fp,-8 
+	lw 	$2,0($4) 
+	lw 	$5,0($2) 
+	addi 	$6,$5,0 
+	sw 	$2,-20($fp) 
+	addi 	$v0,$0,1 
+	add 	$a0,$0,$6 
+	syscall
+	addi 	$v0,$0,4 
+	la 	$a0,msg0 
+	syscall
+	jr 	$ra 

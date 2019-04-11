@@ -1,9 +1,14 @@
 package main
 
-var a [10]int
-var b int
+func main(){
+   var t int = 10
+   var p *int
+   var z int
+   p=&t
+   z= *p
+   print z
+   print "\n"
+}
 
- func main(){
-   print "go go compiler"
-   print "hey ya"
-     }
+
+
