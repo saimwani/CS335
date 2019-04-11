@@ -45,7 +45,7 @@ msgCount=0
 
 def newMsg(a=None):
     global msgCount
-    newm="msg#"+str(msgCount)
+    newm="msg"+str(msgCount)
     msgCount+=1
     return newm
 
