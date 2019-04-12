@@ -1,9 +1,0 @@
-main :
-vartemp#1 = 10
-temp#3 = & vartemp#1
-* vartemp#2 = temp#3
-temp#5 = * vartemp#2
-temp#6 = * temp#5
-print_int temp#6
-print_string "\n"
-return
