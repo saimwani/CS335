@@ -3,13 +3,9 @@ package main
 func main(){
    var t int = 10
    var p *int
-   var y *int
    p=&t
-   y=&t
-   if p!=y {
-   print "correct\n"
-   }
-   /* print "\n" */
+   print *p
+   print "\n"
 }
 
 

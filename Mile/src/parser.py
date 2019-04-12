@@ -948,8 +948,13 @@ def p_UnaryExpr(p):
             p[0].info["memory"]=1
             p[0].info["deref"]=1
             var1=newTemp()
-            p[0].code.append([var1,"=","*",p[2].expList[0]])
-            p[0].expList=[var1]
+            ## Using extra information to determine whether to dereference
+            if(p[2].info.get("addPtr")==None):
+                var1=newTemp()
+                p[0].code.append([var1,"=","*",p[2].expList[0]])
+                p[0].expList=[var1]
+            else:
+                p[0].expList=p[2].expList
         elif(p[1].expTList[0][0]=="&"):
             p[0].info["memory"]=0
             if(p[2].info.get("deref")==None):
@@ -960,6 +965,8 @@ def p_UnaryExpr(p):
                 p[0].expList=[var1]
             else:
                 p[0].expList=p[2].expList
+            ## Extra Information that pointer was constructed by taking and operator
+            p[0].info["addPtr"]=1
         else:
             p[0].info["memory"]=0
             var1=newTemp()

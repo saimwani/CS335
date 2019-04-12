@@ -1,13 +1,9 @@
 main :
 vartemp#1 = 10
-temp#4 = & vartemp#1
-* vartemp#2 = temp#4
-temp#5 = & vartemp#1
-* vartemp#3 = temp#5
-temp#6 = * vartemp#2
-temp#7 = * vartemp#3
-temp#8 = temp#6 !=ptr temp#7
-ifnot temp#8 goto label_1
-print_string "correct\n"
-label_1 :
+temp#3 = & vartemp#1
+* vartemp#2 = temp#3
+temp#5 = * vartemp#2
+temp#6 = * temp#5
+print_int temp#6
+print_string "\n"
 return

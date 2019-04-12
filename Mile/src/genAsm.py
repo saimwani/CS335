@@ -198,7 +198,7 @@ f.write(".data\n .text\n.globl main\n")
 count=0
 for code in codeLines:
     count=count+1
-    # f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
+    #f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
     #print (count,"\n",regToVar)
     #print ("++++++++++++++++++++++++++++++++")
     temp=""
@@ -412,7 +412,6 @@ for code in codeLines:
                 f.write("addi " + "$"+ str(addReg) + "," + "$gp," + str(-off)+"\n")
             else:
                 f.write("addi " + "$"+ str(addReg) + "," + "$fp," + str(-off)+"\n")
-            resetVars()
             f.write("sw $"+str(reg2)+",0($"+str(addReg)+")\n")
             
 
@@ -420,6 +419,7 @@ for code in codeLines:
 
 
     if(len(code)==4 and code[0]=="*"):
+        resetVars()
         if(code[3][0]!='t' and code[3][0]!='v'): #constant
             reg2=getReg(0)
             f.write("addi "+ "$" +str(reg2)+",$0," + code[3] +"\n")
@@ -461,11 +461,11 @@ for code in codeLines:
             varToReg[code[1]]=reg1
         else:
             reg1=varToReg[code[1]]
-        resetVars()
         # print(code[1],reg1)
         f.write("sw $"+str(reg2)+",0($"+str(reg1)+")\n")
 
     if(len(code)==4 and code[2]=="*"):
+        resetVars()
         reg1=getReg(0,code[0])
         regToVar[reg1]=code[0]
         varToReg[code[0]]=reg1
@@ -623,7 +623,6 @@ for code in codeLines:
                 varToReg[code[1]]=reg
             else:
                 reg=varToReg[code[1]]
-        resetVars()
         f.write("addi $sp,$sp,-4\nsw $"+str(reg)+",0($sp)\n")
 
     if(code[0]=="param" and len(code)==3): # param reg size
@@ -659,7 +658,6 @@ for code in codeLines:
         while size>0:
             f.write("addi $sp,$sp,-4\n")
             f.write("lw $"+str(regToCopy)+","+str(off)+"($"+str(reg)+")\n")
-            resetVars()
             f.write("sw $"+str(regToCopy)+",0($sp)\n")
             size=size-4
             off=off+4
@@ -671,25 +669,20 @@ for code in codeLines:
                 continue
             if(regToVar[index][0]=='t'):
                 off=getOffset(regToVar[index])
-                resetVars()
                 f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
             elif(not getType(regToVar[index])):
                 off,control=getVarOffset(regToVar[index])
                 if (not control):
-                    resetVars()
                     f.write("sw " + "$"+ str(index) + "," + str(-off)+"($gp)\n")
                 else:
-                    resetVars()
                     f.write("sw " + "$"+ str(index) + "," + str(-off)+"($fp)\n")
             if(varToReg.get(regToVar[index])!=None):
                 del varToReg[regToVar[index]]
             regToVar[index]="free"
 
         f.write("addi $sp,$sp,-4\n")
-        resetVars()
         f.write("sw $ra,0($sp)\n")
         f.write("addi $sp,$sp,-4\n")
-        resetVars()
         f.write("sw $fp,0($sp)\n")
         f.write("add $fp,$0,$sp\n")
         f.write("jal "+currentFunc+"\n")
@@ -741,7 +734,6 @@ for code in codeLines:
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg=getReg(0)
             f.write("addi "+ "$" +str(reg)+",$0," + code[2] +"\n")
-            resetVars()
             f.write("sw $"+str(reg)+","+str(-retOff)+"($fp)\n")
             regToVar[reg]="free"
         else:
@@ -766,7 +758,6 @@ for code in codeLines:
                 varToReg[code[2]]=reg
             else:
                 reg=varToReg[code[2]]
-            resetVars()
             f.write("sw $"+str(reg)+","+str(-retOff)+"($fp)\n")
 
     if(code[0]=="print_int"):
@@ -803,10 +794,8 @@ for code in codeLines:
         off, control=getVarOffset(code[1])
         if(not getType(code[1])):  #if basic type // only basic types are allowed anyways
             if(control==0):  # if global
-                resetVars()
                 f.write("sw " + "$v0," + str(-off)+"($gp)\n")  #scanned int is present in $v0
             else:
-                resetVars()
                 f.write("sw " + "$v0," +str(-off)+"($fp)\n")
         varToReg[code[1]]=2
         regToVar[2]=code[1]
@@ -817,7 +806,6 @@ for code in codeLines:
         f.write("addi "+ "$v0,$0,5\n" )  #scanint syscall is 5, $v0 is $2
         f.write("syscall\n")
         if(varToReg.get(code[1])!=None):
-            resetVars()
             f.write("sw " + "$v0," + "0($" +str(varToReg[code[1]])+")\n")
         else:
             off=getOffset(code[1])
@@ -825,7 +813,6 @@ for code in codeLines:
             f.write("lw $"+str(reg)+","+str(off)+"($fp)\n")
             regToVar[reg]=code[1]
             varToReg[code[1]]=reg
-            resetVars()
             f.write("sw " + "$v0," + "0($" +str(reg)+")\n")
 
     if(code[0]=="print_string"):
