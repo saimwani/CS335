@@ -14,9 +14,7 @@ func main() {
 	key := 8
 
     for start <= end {
-        print start," ",end,"\n"
-		m := start + (end-start)/2
-        print m,"\n"
+		m := start + ((end-start)/2)
 		if a[m] == key {
 			print "found at index ",m
             return

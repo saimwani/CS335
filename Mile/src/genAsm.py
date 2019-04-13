@@ -211,6 +211,7 @@ for code in codeLines:
     # f.write(temp+"\n")
     # f.write("...........................\n")
     if (len(code) == 2 and code[1]==":"):
+        reset()
 	if(code[0]=="main"):
             currentLabel="main"
             f.write(code[0]+code[1]+"\n")
@@ -504,6 +505,7 @@ for code in codeLines:
 
     if (code[0]=="ifnot"):
         if (code[1]=='0'):
+            reset()
             f.write("j "+code[3]+"\n")
         elif (code[1]=='1'):
             xxxyyy=0
@@ -529,6 +531,7 @@ for code in codeLines:
                     varToReg[code[1]]=reg2
                 else:
                     reg2=varToReg[code[1]]
+            reset()
             f.write("blez " + "$"+str(reg1)+"," + code[3] +"\n" )
 
     if (code[0]=="goto"):
@@ -652,13 +655,13 @@ for code in codeLines:
             else:
                 reg=varToReg[code[1]]
         regToCopy=getReg(0)
-        off=0
+        off=size-4
         while size>0:
             f.write("addi $sp,$sp,-4\n")
             f.write("lw $"+str(regToCopy)+","+str(off)+"($"+str(reg)+")\n")
             f.write("sw $"+str(regToCopy)+",0($sp)\n")
             size=size-4
-            off=off+4
+            off=off-4
 
     if(code[0]=="call"):
         ## Reset the reg-var maps
@@ -763,7 +766,6 @@ for code in codeLines:
         f.write("addi "+ "$v0,$0,1\n" )  #print syscall is 1 , $v0 is $2
         saveReg(4)
         if(varToReg.get(code[1])==None):
-            #print(code[1],"!!!!!!!!!!!!!!!!!!!!!!!entered!!!!!!!!!!!!!!!!!!!!!")
             if(code[1][0]=='t'):
                 off=getOffset(code[1])
                 f.write("lw " + "$a0,"+ str(-off)+"($fp)\n")  #CHECK ABOVE
@@ -832,12 +834,12 @@ for code in codeLines:
         else:
             xxx=0
 
-    print (code)
-    print("-----------------------------------------------")
-    print (regToVar)
-    print("-----------------------------------------------")
-    print(varToReg)
-    f.write("###############################################\n")
+    # print (code)
+    # print("-----------------------------------------------")
+    # print (regToVar)
+    # print("-----------------------------------------------")
+    # print(varToReg)
+    # f.write("###############################################\n")
 
 
 

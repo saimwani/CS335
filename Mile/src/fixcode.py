@@ -19,11 +19,9 @@ leng=len(codeLines)
 for i in range(0, leng):
     if(i==len(codeLines)):
         break
-    #print(i, leng, len(codeLines), "\n")
     if (codeLines[i][0][0:3]=="msg"):
         saveMsgs.append(codeLines.pop(i))
         leng-=1
-print saveMsgs
 
 
 
