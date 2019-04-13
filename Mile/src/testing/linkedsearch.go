@@ -5,11 +5,14 @@ type ll struct {
 	next struct *ll
 }
 func main() {
-    var nil ll
+    var find int
+    scan find 
+
 	var a1 ll
 	var a2 ll
 	var a3 ll
 	var a4 ll
+    var end ll 
 	a1.a = 1
 	a2.a = 2
 	a3.a = 3
@@ -17,26 +20,23 @@ func main() {
 	a1.next = &a2
 	a2.next = &a3
 	a3.next = &a4
-	a4.next = &nil
-	var head ll
-    head.a = a1.a
-    head.next = a1.next
-   
-    found := False
-	for False {
-		if True {
+	a4.next = &end
+    var head *ll
+    head = &a1
+	found := False
+	for {
+		if head == &end {
 			break
 		}
-		if head.a == 3 {
-			/* found = True */
+		if ((*head).a == find) {
+			found = True
 			break
 		}
+		head = (*head).next
 	}
-
 	if found {
-		print 0
+		print "Found\n"
 	} else {
-		print 1
+		print "Not found\n"
 	}
 }
-

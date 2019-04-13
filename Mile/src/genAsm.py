@@ -170,6 +170,10 @@ def reset(a=None):
         for i in range(2,26):
             if(regToVar[i]=="free"):
                 continue
+            elif(regToVar[i]=="const"):
+                regToVar[i]="free"
+                continue 
+            # print (regToVar[i],varToReg[regToVar[i]])
             saveReg(i)
     else:
         xxxyyy=0
@@ -177,7 +181,7 @@ def reset(a=None):
 def resetVars(a=None):
     if(a==None):
         for i in range(2,26):
-            if(regToVar[i]=='free' or regToVar[i][0]=='t'):
+            if(regToVar[i]=='free' or regToVar[i][0]=='t' or regToVar[i][0]=='c'):
                 continue
             saveReg(i)
     else:
@@ -217,7 +221,7 @@ for code in codeLines:
             scope=scopeTab[0].table[code[0]]["Scope"]
             f.write("addi "+"$sp,"+"$sp,"+"-"+str(scopeTab[scope].table["#total_size"]["type"])+"\n")
 
-    if (len(code) == 5):
+    if (len(code) == 5 and code[0][0]!='p'):
         if(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
@@ -511,22 +515,16 @@ for code in codeLines:
                 f.write("addi " + "$"+str(reg1)+ ",$0,"+ code[1]+"\n")
             else:
                 if(varToReg.get(code[1])==None):
-                    reg2=getReg(0)
+                    reg1=getReg(0)
                     if(code[1][0]=='t'):
                         off=getOffset(code[1])
-                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
+                        f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($fp)\n")
                     else:
                         off, control=getVarOffset(code[1])
-                        if(not getType(code[1])):
-                            if(control==0):
-                                f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
-                            else:
-                                f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg1) + "," + str(-off)+"($gp)\n")
                         else:
-                            if(control==0):
-                                f.write("addi " + "$"+ str(reg2) + "," + "$gp," + str(-off)+"\n")
-                            else:
-                                f.write("addi " + "$"+ str(reg2) + "," + "$fp," + str(-off)+"\n")
+                            f.write("lw " + "$"+ str(reg1) + ","+str(-off)+"($fp)\n")
                     regToVar[reg2]=code[1]
                     varToReg[code[1]]=reg2
                 else:
@@ -729,7 +727,7 @@ for code in codeLines:
     if(len(code)==4 and code[1]=="return"):
         retNumber=int(code[3])
         func=code[0]
-        retOff=scopeTab[0].table[func]["retSizeList"][retNumber]
+        retOff=scopeTab[0].table[func]["retSizeList"][len(scopeTab[0].table[func]["retSizeList"])-1-retNumber]
 
         if(code[2][0]!='t' and code[2][0]!='v'): #constant
             reg=getReg(0)
@@ -760,7 +758,7 @@ for code in codeLines:
                 reg=varToReg[code[2]]
             f.write("sw $"+str(reg)+","+str(-retOff)+"($fp)\n")
 
-    if(code[0]=="print_int"):
+    if(code[0]=="print_int" or code[0]=="print_bool"):
         saveReg(2)
         f.write("addi "+ "$v0,$0,1\n" )  #print syscall is 1 , $v0 is $2
         saveReg(4)
@@ -834,12 +832,12 @@ for code in codeLines:
         else:
             xxx=0
 
-    # print (code)
-    # print("-----------------------------------------------")
-    # print (regToVar)
-    # print("-----------------------------------------------")
-    # print(varToReg)
-    # f.write("###############################################\n")
+    print (code)
+    print("-----------------------------------------------")
+    print (regToVar)
+    print("-----------------------------------------------")
+    print(varToReg)
+    f.write("###############################################\n")
 
 
 

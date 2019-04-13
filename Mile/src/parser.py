@@ -107,6 +107,10 @@ def checkOprn(exp1,binop,exp2):
             return [exp1]
         else:
             return None
+    if(exp1=="bool"):
+        if(binop=="==" or binop=="!="):
+            return ["bool"]
+        return None
     if(exp1=="int" or exp1=="rune"):
         if(binop == ">" or binop =="<" or binop=="==" or binop==">=" or binop=="<="or binop=="!="):
             return ["bool"]

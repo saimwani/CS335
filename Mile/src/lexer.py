@@ -362,9 +362,9 @@ def t_NEWLINE(t):
     global prev_token
     if(prev_token=="ID" or prev_token== "FALSE" or prev_token=="TRUE" or prev_token=="INT" or prev_token=="FLOAT" or prev_token=="IMAG" or prev_token=="RUNE" or prev_token=="STRING" or prev_token=="INC" or prev_token=="DEC" or prev_token=="RBRACE" or prev_token=="RBRACK" or prev_token=="RPAREN"):
         t.type="SEMICOLON"
+        t.lexer.lineno += len(t.value)
         t.value=";"
         prev_token=t.type
-        t.lexer.lineno += len(t.value)
         return t
     prev_token=t.type
     t.lexer.lineno += len(t.value)
