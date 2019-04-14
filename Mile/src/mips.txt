@@ -1,0 +1,73 @@
+.data
+	msg0: 	.asciiz 	"\n" 
+.text
+.globl main
+fibo_iter:
+	addi 	$sp,$sp,-24 
+	addi 	$2,$0,0 
+	addi 	$2,$2,0 
+	addi 	$3,$0,1 
+	addi 	$3,$3,0 
+	addi 	$4,$0,0 
+	addi 	$4,$4,0 
+	sw 	$2,-4($fp) 
+	sw 	$3,-8($fp) 
+	sw 	$4,-12($fp) 
+label_1:
+	lw 	$2,-12($fp) 
+	lw 	$3,8($fp) 
+	slt 	$4,$2,$3 
+	sw 	$2,-12($fp) 
+	sw 	$3,8($fp) 
+	sw 	$4,-16($fp) 
+	blez 	$4,label_3 
+	addi 	$v0,$0,1 
+	lw 	$a0,,-4($fp) 
+	syscall
+	addi 	$v0,$0,4 
+	sw 	$4,-4($fp) 
+	la 	$a0,msg0 
+	syscall
+	lw 	$2,-4($fp) 
+	lw 	$3,-8($fp) 
+	add 	$4,$2,$3 
+	addi 	$5,$4,0 
+	addi 	$2,$3,0 
+	addi 	$3,$5,0 
+	lw 	$6,-12($fp) 
+	addi 	$7,$0,1 
+	add 	$6,$6,$7 
+	sw 	$2,-4($fp) 
+	sw 	$3,-8($fp) 
+	sw 	$4,-20($fp) 
+	sw 	$5,-24($fp) 
+	sw 	$6,-12($fp) 
+	j 	label_1 
+label_3:
+label_2:
+	add 	$sp,$fp,$0 
+	lw 	$fp,0($sp) 
+	addi 	$sp,$sp,4 
+	jr 	$ra 
+main:
+	addi 	$fp,$sp,0 
+	addi 	$sp,$sp,-4 
+	addi 	$2,$0,0 
+	addi 	$2,$2,0 
+	sw 	$2,-4($fp) 
+	addi 	$v0,$0,5 
+	syscall
+	sw 	$v0,-4($fp) 
+	addi 	$sp,$sp,0 
+	addi 	$sp,$sp,-4 
+	sw 	$2,0($sp) 
+	sw 	$2,-4($fp) 
+	addi 	$sp,$sp,-4 
+	sw 	$ra,0($sp) 
+	addi 	$sp,$sp,-4 
+	sw 	$fp,0($sp) 
+	add 	$fp,$0,$sp 
+	jal 	fibo_iter 
+	lw 	$ra,0($sp) 
+	addi 	$sp,$sp,8 
+	jr 	$ra 

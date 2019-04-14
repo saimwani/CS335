@@ -1,0 +1,42 @@
+
+Table Number,0
+
+Parent,0,=,
+
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 3, 'type': ['func']}"
+fibo_iter,"{'takes': [['int']], '#total_parSize': 4, '#total_retSize': 0, 'parSizeList': [4], 'returns': [['void']], 'retSizeList': [], 'Scope': 1, 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#2', 'type': ['int'], 'offset': 4}"
+#total_size,{'type': 24}
+b,"{'tmp': 'vartemp#3', 'type': ['int'], 'offset': 8}"
+n,"{'tmp': 'vartemp#1', 'type': ['int'], 'offset': -8}"
+vartemp#1,{'type': 'n'}
+vartemp#3,{'type': 'b'}
+vartemp#2,{'type': 'a'}
+fibo_iter,{'type': ['func']}
+
+Table Number,2
+
+Parent,2,=,1
+
+tmp,"{'tmp': 'vartemp#7', 'type': ['int'], 'offset': 24}"
+vartemp#7,{'type': 'tmp'}
+i,"{'tmp': 'vartemp#4', 'type': ['int'], 'offset': 12}"
+vartemp#4,{'type': 'i'}
+fibo_iter,{'type': ['func']}
+temp#5,"{'type': 'Temporary', 'offset': 16}"
+temp#6,"{'type': 'Temporary', 'offset': 20}"
+
+Table Number,3
+
+Parent,3,=,0
+
+a,"{'tmp': 'vartemp#8', 'type': ['int'], 'offset': 4}"
+vartemp#8,{'type': 'a'}
+#total_size,{'type': 4}
+main,{'type': ['func']}
+fibo_iter,{'type': ['func']}

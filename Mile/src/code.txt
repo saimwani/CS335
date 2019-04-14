@@ -1,0 +1,27 @@
+fibo_iter :
+vartemp#2 = 0
+vartemp#3 = 1
+vartemp#4 = 0
+reset
+label_1 :
+temp#5 = vartemp#4 <int vartemp#1
+ifnot temp#5 goto label_3
+print_int vartemp#2
+print_string "\n"
+temp#6 = vartemp#2 +int vartemp#3
+vartemp#7 = temp#6
+vartemp#2 = vartemp#3
+vartemp#3 = vartemp#7
+vartemp#4 = vartemp#4 +int 1
+goto label_1
+label_3 :
+label_2 :
+return
+main :
+vartemp#8 = 0
+vscan_int vartemp#8
+startf fibo_iter
+param vartemp#8
+call fibo_iter
+endf fibo_iter
+return
