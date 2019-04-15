@@ -1,0 +1,39 @@
+package main
+import "fmt"
+type coll struct {
+	x,y int
+}
+
+type data struct {
+	pair coll
+	control int
+}
+
+type structure struct {
+	list [10]data
+	next struct *structure	
+}
+
+func main() {
+	var array [10]structure
+	var i int
+	for i=0;i<10;i++ {
+		if(i<9)  {
+			(array[i]).next = &((array[i+1]))
+		}
+		count:=0
+		for j:=0;j<10;j=j+1 {
+			check:=(((array[i]).list)[j]).control
+			if(check>0) {
+				temp:=(((array[i]).list)[j]).pair.x
+				(((array[i]).list)[j]).pair.x=(((array[i]).list)[j]).pair.y
+				(((array[i]).list)[j]).pair.y=temp
+			} else {
+				count=count+1
+				if(count>=5) {
+					break
+				}
+			}
+		}
+	}
+}

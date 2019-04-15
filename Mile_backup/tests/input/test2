@@ -1,0 +1,24 @@
+package main;
+
+import "fmt";
+
+var x,y int
+
+type Vertex struct {
+	Lat, Long float;
+    ac struct *Vertex
+};
+
+func exam(x,y int , z float) {
+	var a int
+	var b float
+	a = (x+y)*(x-y)
+	b = z*z*z*z*z*z
+}
+
+func main() {
+	var vertex Vertex;
+	vertex.Lat=40.6833;
+	(*(vertex.ac)).Lat=-74.39967;
+	exam(1,2,4.0)
+}

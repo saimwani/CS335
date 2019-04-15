@@ -5,7 +5,7 @@ codeLines=[]
 j=0
 for i in content:
     codeLines.append([])
-    for x in i.split(','):
+    for x in i.split():
         codeLines[j].append(x)
     j+=1
 flag=0
@@ -30,7 +30,7 @@ for code in codeLines:
             ring=ring+code[x]
             # print(ring +"\n")
             break
-        ring=ring+code[x]+","
+        ring=ring+code[x]+" "
 
     f.write(ring)
     ring=""

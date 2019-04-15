@@ -12,7 +12,6 @@ precedence = (
     ('left','LPAREN'),
     ('left','LBRACE'),
     ('left','ID'),
-    # ('left','MALLOC'),
     ('left','DEFINE'),
     ('left','COMMA'),
     ('left','LBRACK'),
@@ -214,10 +213,8 @@ def p_SourceFile(p):
     f=open('code.txt',"w")
     for i in range(0,len(p[0].code)):
         y=""
-        for j in range(len(p[0].code[i])):
-            y=y+str(p[0].code[i][j])
-            if(j!=len(p[0].code[i])-1):
-                y=y+","
+        for x in p[0].code[i]:
+            y=y+" "+str(x)
         f.write(y+'\n')
 
 def p_OpenS(p):
@@ -492,6 +489,7 @@ def p_VarSpec(p):
                     offsetList[currentFScope]+=p[2].info["typesize"]
                     scopeTab[currentScope].updateList(x,"offset",offsetList[currentFScope])
 
+
     if(len(p)==5):
         if(len(p[1].idList) != len(p[4].expTList)):
             raise NameError("Imbalanced assignment", p.lineno(1))
@@ -501,11 +499,7 @@ def p_VarSpec(p):
         p[0]=node()
         p[0].code=p[1].code+p[4].code
         for i in range(0,len(p[1].idList)):
-            temp=[]
-            if(p[4].expTList[i][0]=="string"):
-                temp.append("string_assign")
-            temp.append(scopeTab[currentScope].table[p[1].idList[i]]["tmp"])
-            temp.append("=")
+            temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
             if(p[4].info["dereflist"][i]==1):
                 temp.append("*")
             temp.append(p[4].expList[i])
@@ -531,11 +525,7 @@ def p_VarSpec(p):
             p[0]=node()
             p[0].code=p[1].code+p[3].code
             for i in range(0,len(p[1].idList)):
-                temp=[]
-                if(p[3].expTList[i][0]=="string"):
-                    temp.append("string_assign")
-                temp.append(scopeTab[currentScope].table[p[1].idList[i]]["tmp"])
-                temp.append("=")
+                temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
                 if(p[3].info["dereflist"][i]==1):
                     temp.append("*")
                 temp.append(p[3].expList[i])
@@ -1264,7 +1254,6 @@ def p_Statement(p):
               | ContinueStmt
               | IfStmt
               | OpenS Block CloseS
-              | MallocStmt
               | SwitchStmt
               | ForStmt
               | PrintStmt
@@ -1274,28 +1263,6 @@ def p_Statement(p):
         p[0]=p[1]
     else:
         p[0]=p[2]
-
-def p_MallocStmt(p):
-    """
-    MallocStmt : MALLOC LPAREN PrimaryExpr COMMA Type RPAREN 
-               | MALLOC LPAREN PrimaryExpr COMMA ID RPAREN
-    """
-    p[0]=node()
-    p[0].code=[]
-    p[0].code=p[3].code
-    if(isinstance(p[5],str) and not p[5] in scopeTab[currentScope].typeList):
-        raise NameError("Invalid type "+p[5], p.lineno(1))
-
-    if(p[3].expTList[0][0]!="pointer"):
-        raise NameError("Malloc can only be done for pointers ",p.lineno(1))
-    if(not isinstance(p[5],str) and p[3].expTList[0][1:]!=p[5].type):
-        raise NameError("Type mismatch for malloc ",p.lineno(1))
-    if(isinstance(p[5],str) and p[3].expTList[0][1]!=p[5]):
-        raise NameError("Type mismatch for malloc ",p.lineno(1))
-    if(isinstance(p[5],str)):
-        p[0].code.append([p[3].expList[0],"malloc",scopeTab[currentScope].typeSList[p[5]]])
-    else:
-        p[0].code.append([p[3].expList[0],"malloc",p[5].info["typesize"]])
 
 def p_PrintStmt(p):
     """
@@ -1441,24 +1408,10 @@ def p_Assignment(p):
                     p[0].code.append([p[1].expList[i],"=",p[1].expList[i],ops+temp[0],var1])
             else:
                 if(p[2].expTList[0][0]=="="):
-                    temp=[]
-                    if(p[1].expTList[i][0]=="string"):
-                        temp.append("string_assign")
-                    temp.append(p[1].expList[i])
-                    temp.append(p[2].expTList[0][0])
-                    temp.append(p[3].expList[i])
-                    p[0].code.append(temp)
+                    p[0].code.append([p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
                 else:
                     ops=p[2].expTList[0][0][:-1]
-                    temp=[]
-                    if(p[1].expTList[i][0]=="string"):
-                        temp.append("string_assign")
-                    temp.append(p[1].expList[i])
-                    temp.append("=")
-                    temp.append(p[1].expList[i])
-                    temp.append(ops+temp[0])
-                    tem.append(p[3].expList[i])
-                    p[0].code.append(temp)
+                    p[0].code.append([p[1].expList[i],"=",p[1].expList[i],ops+temp[0],p[3].expList[i]])
     p[0].expTList=[]
 
 def p_AssignOp(p):
@@ -1547,11 +1500,7 @@ def p_ShortVarDecl(p):
     p[0]=node()
     p[0].code=p[3].code
     for i in range(0,len(p[1].idList)):
-        temp=[]
-        if(p[3].expTList[i][0]=="string"):
-            temp.append("string_assign")
-        temp.append(scopeTab[currentScope].table[p[1].idList[i]]["tmp"])
-        temp.append("=")
+        temp=[scopeTab[currentScope].table[p[1].idList[i]]["tmp"],"="]
         if(p[3].info["dereflist"][i]==1):
             temp.append("*")
         temp.append(p[3].expList[i])

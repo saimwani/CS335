@@ -16,7 +16,6 @@ reserved={
 	'import' : 'IMPORT',
 #	'interface' : 'INTERFACE',
 #	'map' : 'MAP',
-        'malloc' : 'MALLOC',
 	'package' : 'PACKAGE',
         'print' : 'PRINT',
 #	'range' : 'RANGE',

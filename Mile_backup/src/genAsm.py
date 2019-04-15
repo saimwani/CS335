@@ -1,7 +1,6 @@
 import pickle
 import os
 import sys
-import ascii
 with open('scopeTabDump', 'rb') as handle:
     scopeTab  = pickle.load(handle)
 basicTypes=["int","float","rune","string","bool"]
@@ -22,7 +21,7 @@ j=0
 codeLines=[]
 for i in content:
     codeLines.append([])
-    for x in i.split(','):
+    for x in i.split():
         codeLines[j].append(x)
     j+=1
 
@@ -43,7 +42,6 @@ currentFunc=""
 currentLabel=""
 
 msgCount=0
-string_dict={}
 
 def newMsg(a=None):
     global msgCount
@@ -204,7 +202,7 @@ f.write(".data\n .text\n.globl main\n")
 count=0
 for code in codeLines:
     count=count+1
-    # f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
+    #f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
     #print (count,"\n",regToVar)
     #print ("++++++++++++++++++++++++++++++++")
     temp=""
@@ -223,90 +221,6 @@ for code in codeLines:
         if (scopeTab[0].table.get(code[0])!= None):
             scope=scopeTab[0].table[code[0]]["Scope"]
             f.write("addi "+"$sp,"+"$sp,"+"-"+str(scopeTab[scope].table["#total_size"]["type"])+"\n")
-
-    if(len(code)==3 and code[1]=="malloc"):
-        saveReg(2)
-        saveReg(4)
-        f.write("li $a0,"+str(code[2])+"\nli $v0,9\nsyscall\n")
-        if(code[0][0]=='t'):
-            if(varToReg.get(code[0])!=None):
-                f.write("sw " + "$v0"+",0($"+str(varToReg[code[0]])+")\n")
-                saveReg(varToReg[code[0]])
-            else:
-                off=getOffset(code[0])
-                f.write("lw $a0,"+str(-off)+"($fp)\n")
-                f.write("sw $v0,0($a0)\n")
-        else:
-            off, control=getVarOffset(code[0])
-            if(control==0):
-                f.write("sw " + "$v0" + "," +str(-off)+"($gp)\n")
-            else:
-                f.write("sw " + "$v0" + ","+str(-off)+"($fp)\n")
-            if(varToReg.get(code[0])!=None):
-                saveReg(varToReg[code[0]])
-    
-    if(code[0]=="string_assign"):
-        if(len(code)==4):
-            if(code[3][0]=="\""):
-                code[3]=code[3][1:-1]
-                asc_str=[]
-                i=0
-                while i < len(code[3]):
-                    if(code[3][i]!="\\"):
-                        # print(code[3][i])
-                        asc_str.append(ord(code[3][i]))
-                        i+=1
-                    else:
-                        i+=1
-                        if(code[3][i]=="\'"):
-                            asc_str.append(ord("\'"))
-                        if(code[3][i]=="\""):
-                            asc_str.append(ord("\""))
-                        if(code[3][i]=="n"):
-                            asc_str.append(ord("\n"))
-                        if(code[3][i]=="t"):
-                            asc_str.append(ord("\t"))
-                        if(code[3][i]=="\\"):
-                            asc_str.append(ord("\\"))
-                        i+=1 
-                saveReg(2)
-                saveReg(4)
-                size=len(asc_str)+((4-len(asc_str)%4)%4)+4
-                string_dict[code[1]]=size
-                f.write("li $a0,"+str(size)+"\n")
-                f.write("li $v0 ,9\nsyscall\n")
-                for i in range(0,len(asc_str)):
-                    f.write("li $a0,"+str(asc_str[i])+"\n")
-                    f.write("sb $a0,"+str(i)+"($v0)\n")
-                f.write("li $a0,"+str(0)+"\n")
-                f.write("sb $a0,"+str(len(asc_str))+"($v0)\n")
-                off, control=getVarOffset(code[1])
-                if(control==0):
-                    f.write("sw " + "$v0,"+str(-off)+"($gp)\n")
-                else:
-                    f.write("sw " + "$v0,"+str(-off)+"($fp)\n")
-            else:   
-                string_dict[code[1]]=string_dict[code[3]]
-                reg1=getReg(0,code[1])
-                regToVar[reg1]=code[1]
-                varToReg[code[1]]=reg1
-
-                if(varToReg.get(code[3])==None):
-                    reg2=getReg(0)
-                    if(code[3][0]=='t'):
-                        off=getOffset(code[2])
-                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
-                    else:
-                        off, control=getVarOffset(code[3])
-                        if(control==0):
-                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
-                        else:
-                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
-                    regToVar[reg2]=code[3]
-                    varToReg[code[3]]=reg2
-                else:
-                    reg2=varToReg[code[3]]
-                f.write("addi $" +str(reg1)+", $"+str(reg2)+",0\n")
 
     if (len(code) == 5 and code[0][0]!='p'):
         if(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
@@ -334,7 +248,6 @@ for code in codeLines:
                 f.write("addi "+"$"+str(reg)+",$0," + str(val)+"\n")
                 regToVarFloat[reg]=code[0]
                 varToRegFloat[code[0]]=reg
-        
         elif(code[2][0]!='t' and code[2][0]!='v' and (code[4][0]=='t' or code[4][0]=='v')):   # constant, temp or constant, vartemp
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
@@ -460,7 +373,7 @@ for code in codeLines:
             else:
                 xxxyyy=0
 
-    if (len(code)==3 and code[1]!="malloc"  and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):  #CHECK
+    if (len(code)==3 and (code[0][0]=='t' or code[0][0]=='v') and code[2][0]!="*" and code[2][0]!="r"):  #CHECK
         #reg1=getReg(0,code[0])
         #regToVar[reg1]=code[0]
         #varToReg[code[0]]=reg1
@@ -903,39 +816,23 @@ for code in codeLines:
             f.write("sw " + "$v0," + "0($" +str(reg)+")\n")
 
     if(code[0]=="print_string"):
-        if(code[1][0]!='\"'):
-            saveReg(2)
-            saveReg(4)
-            if(varToReg.get(code[1])==None):
-                reg=getReg(0)
-                off, control=getVarOffset(code[1])
-                if(control==0):
-                    f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($gp)\n")
-                else:
-                    f.write("lw " + "$"+ str(reg) + ","+str(-off)+"($fp)\n")
-                regToVar[reg]=code[1]
-                varToReg[code[1]]=reg
-            else:
-                reg=varToReg[code[1]]
-            f.write("add $a0,$"+str(reg)+",0\n")
-            f.write("li $v0,4\nsyscall\n")
+#        f.write("start string printing\n")
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,4\n" )  #print_string syscall is 4, $v0 is $2
+        saveReg(4)
+        if(code[1][0]=="\""): #is a literal string
+            msg=newMsg()
+            st=""
+            for i in range(1, len(code)):
+                if(i==len(code)-1):
+                    st=st+code[i]
+                    break
+                st=st+code[i]+" "
+            f.write(msg +": "+".asciiz "+ st+ "\n" )
+            f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
+            f.write("syscall\n")
         else:
-            saveReg(2)
-            f.write("addi "+ "$v0,$0,4\n" )  #print_string syscall is 4, $v0 is $2
-            saveReg(4)
-            if(code[1][0]=="\""): #is a literal string
-                msg=newMsg()
-                st=""
-                for i in range(1, len(code)):
-                    if(i==len(code)-1):
-                        st=st+code[i]
-                        break
-                    st=st+code[i]+" "
-                f.write(msg +": "+".asciiz "+ st+ "\n" )
-                f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
-                f.write("syscall\n")
-            else:
-                xxx=0
+            xxx=0
 
     # print (code)
     # print("-----------------------------------------------")

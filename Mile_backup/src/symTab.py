@@ -12,7 +12,7 @@ class symbolTable:
         self.table={}
         self.parent=None
         self.typeList=['int','float','string','rune','bool']
-        self.typeSList={'int':4,'float':4,'string':4,'rune':1,'bool':4}
+        self.typeSList={'int':4,'float':4,'string':100,'rune':1,'bool':4}
 
     def search(self,ident):
         return (self.table.get(ident))
