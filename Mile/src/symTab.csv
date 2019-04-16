@@ -1,0 +1,20 @@
+
+Table Number,0
+
+Parent,0,=,
+
+main,"{'takes': [['void']], '#total_parSize': 0, '#total_retSize': 0, 'returns': [['void']], 'retSizeList': [], 'Scope': 1, 'type': ['func']}"
+
+Table Number,1
+
+Parent,1,=,0
+
+a,"{'tmp': 'vartemp#1', 'type': ['string'], 'offset': 4}"
+c,"{'tmp': 'vartemp#4', 'type': ['string'], 'offset': 16}"
+b,"{'tmp': 'vartemp#2', 'type': ['string'], 'offset': 8}"
+#total_size,{'type': 16}
+vartemp#1,{'type': 'a'}
+vartemp#2,{'type': 'b'}
+vartemp#4,{'type': 'c'}
+temp#3,"{'type': 'Temporary', 'offset': 12}"
+main,{'type': ['func']}

@@ -1423,7 +1423,12 @@ def p_Assignment(p):
                     p[0].code.append(["*",p[1].expList[i],"=",var2])
             else:
                 if(p[2].expTList[0][0]=="="):
-                    p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
+                    if(p[3].expTList[i][0]=="string"):
+                        var1=newTemp()
+                        p[0].code.append(["string_assign",var1,"=",p[3].expList[i]])
+                        p[0].code.append(["*",p[1].expList[i],"=",var1])
+                    else:
+                        p[0].code.append(["*",p[1].expList[i],p[2].expTList[0][0],p[3].expList[i]])
                 else:
                     ops=p[2].expTList[0][0][:-1]
                     var2=newTemp()

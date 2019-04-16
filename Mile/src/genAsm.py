@@ -249,7 +249,7 @@ f.write(".data\n .text\n.globl main\n")
 count=0
 for code in codeLines:
     count=count+1
-    #f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
+    # f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
     #print (count,"\n",regToVar)
     #print ("++++++++++++++++++++++++++++++++")
     temp=""
@@ -326,10 +326,14 @@ for code in codeLines:
                     f.write("sb $a0,"+str(i)+"($v0)\n")
                 f.write("li $a0,"+str(0)+"\n")
                 f.write("sb $a0,"+str(len(asc_str))+"($v0)\n")
-                off, control=getVarOffset(code[1])
-                if(control==0):
-                    f.write("sw " + "$v0,"+str(-off)+"($gp)\n")
+                if(code[1][0]=='v'):
+                    off, control=getVarOffset(code[1])
+                    if(control==0):
+                        f.write("sw " + "$v0,"+str(-off)+"($gp)\n")
+                    else:
+                        f.write("sw " + "$v0,"+str(-off)+"($fp)\n")
                 else:
+                    off=getOffset(code[1])
                     f.write("sw " + "$v0,"+str(-off)+"($fp)\n")
             else:   
                 string_dict[code[1]]=string_dict[code[3]]
