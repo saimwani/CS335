@@ -377,7 +377,7 @@ for code in codeLines:
                 allocateBytes(bytes) # $v0 has the address and $a0 is free
                 writeConst(asc_str,0)
                 if(regReplace==2 or regReplace==4):
-                    regReplace=5
+                    regReplace=3
                 regToVar[2]="busy"
                 regToVar[4]="busy"
                 if(varToReg.get(code[4])==None):
@@ -412,7 +412,7 @@ for code in codeLines:
                 allocateBytes(bytes) # $v0 has the address and $a0 is free
 
                 if(regReplace==2 or regReplace==4):
-                    regReplace=5
+                    regReplace=3
                 regToVar[2]="busy"
                 regToVar[4]="busy"
                 if(varToReg.get(code[2])==None):
@@ -448,7 +448,7 @@ for code in codeLines:
                 allocateBytes(bytes) # $v0 has the address and $a0 is free
 
                 if(regReplace==2 or regReplace==4):
-                    regReplace=5
+                    regReplace=3
                 regToVar[2]="busy"
                 regToVar[4]="busy"
                 if(varToReg.get(code[2])==None):
@@ -469,7 +469,7 @@ for code in codeLines:
                 writeVar(reg2,0,string_dict[code[2]])
 
                 if(regReplace==2 or regReplace==4):
-                    regReplace=5
+                    regReplace=3
                 regToVar[2]="busy"
                 regToVar[4]="busy"
                 if(varToReg.get(code[4])==None):
@@ -1097,6 +1097,11 @@ for code in codeLines:
         if(code[1][0]!='\"'):
             saveReg(2)
             saveReg(4)
+            if(regReplace==2 or regReplace==4):
+                regReplace=3
+            regToVar[2]="busy"
+            regToVar[4]="busy"
+
             if(varToReg.get(code[1])==None):
                 reg=getReg(0)
                 off, control=getVarOffset(code[1])
@@ -1110,6 +1115,8 @@ for code in codeLines:
                 reg=varToReg[code[1]]
             f.write("add $a0,$"+str(reg)+",0\n")
             f.write("li $v0,4\nsyscall\n")
+            regToVar[2]="free"
+            regToVar[4]="free"
         else:
             saveReg(2)
             f.write("addi "+ "$v0,$0,4\n" )  #print_string syscall is 4, $v0 is $2
@@ -1125,8 +1132,6 @@ for code in codeLines:
                 f.write(msg +": "+".asciiz "+ st+ "\n" )
                 f.write("la "+ "$a0," +msg+"\n")  #la might be a pseudo instruction so might have to change this #CHECK
                 f.write("syscall\n")
-            else:
-                xxx=0
 
     # print (code)
     # print("-----------------------------------------------")
