@@ -198,13 +198,58 @@ def resetF(a=None):
     else:
         xxxyyy=0
 
+
+def convertToAscii(code):
+    asc_str=[]
+    i=0
+    while i < len(code):
+        if(code[i]!="\\"):
+            # print(code[3][i])
+            asc_str.append(ord(code[i]))
+            i+=1
+        else:
+            i+=1
+            if(code[i]=="\'"):
+                asc_str.append(ord("\'"))
+            if(code[i]=="\""):
+                asc_str.append(ord("\""))
+            if(code[i]=="n"):
+                asc_str.append(ord("\n"))
+            if(code[i]=="t"):
+                asc_str.append(ord("\t"))
+            if(code[i]=="\\"):
+                asc_str.append(ord("\\"))
+            i+=1
+    return asc_str
+
+def allocateBytes(bytes):
+    saveReg(2)
+    saveReg(4)
+    f.write("li $a0,"+str(bytes)+"\n")
+    f.write("li $v0,9\nsyscall\n")
+
+def writeConst(list,offset):
+    for x in range(len(list)):
+        f.write("li $a0,"+str(list[x])+"\n")
+        f.write("sb $a0,"+str(offset)+"($v0)\n")
+        offset=offset+1
+
+def writeVar(reg,base,size):
+    index=0
+    while(index<size):
+        off1=index
+        off2=base+index
+        f.write("lb $a0,"+str(off1)+"($"+str(reg)+")\n")
+        f.write("sb $a0,"+str(off2)+"($v0)\n")
+        index=index+1
+
 f=open('mips.txt', 'wr')
 
 f.write(".data\n .text\n.globl main\n")
 count=0
 for code in codeLines:
     count=count+1
-    # f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
+    #f.write("+++++++++++++++++++++++++++++++ "+str(count)+"\n")
     #print (count,"\n",regToVar)
     #print ("++++++++++++++++++++++++++++++++")
     temp=""
@@ -268,13 +313,14 @@ for code in codeLines:
                             asc_str.append(ord("\t"))
                         if(code[3][i]=="\\"):
                             asc_str.append(ord("\\"))
-                        i+=1 
+                        i+=1
                 saveReg(2)
                 saveReg(4)
                 size=len(asc_str)+((4-len(asc_str)%4)%4)+4
-                string_dict[code[1]]=size
+                ## Replacing size by len(asc_str)
+                string_dict[code[1]]=len(asc_str)
                 f.write("li $a0,"+str(size)+"\n")
-                f.write("li $v0 ,9\nsyscall\n")
+                f.write("li $v0,9\nsyscall\n")
                 for i in range(0,len(asc_str)):
                     f.write("li $a0,"+str(asc_str[i])+"\n")
                     f.write("sb $a0,"+str(i)+"($v0)\n")
@@ -294,7 +340,7 @@ for code in codeLines:
                 if(varToReg.get(code[3])==None):
                     reg2=getReg(0)
                     if(code[3][0]=='t'):
-                        off=getOffset(code[2])
+                        off=getOffset(code[3])
                         f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
                     else:
                         off, control=getVarOffset(code[3])
@@ -306,10 +352,155 @@ for code in codeLines:
                     varToReg[code[3]]=reg2
                 else:
                     reg2=varToReg[code[3]]
-                f.write("addi $" +str(reg1)+", $"+str(reg2)+",0\n")
+                f.write("addi $" +str(reg1)+",$"+str(reg2)+",0\n")
 
     if (len(code) == 5 and code[0][0]!='p'):
-        if(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
+
+        if(code[3][-1]=='g'):
+            if((code[2][0]!='t' and code[2][0]!='v') and (code[4][0]!='t' and code[4][0]!='v')): ## Both constants
+                asc_str=convertToAscii(code[2][1:-1])+convertToAscii(code[4][1:-1])
+                bytes=len(asc_str)-len(asc_str)%4+4
+                string_dict[code[0]]=len(asc_str)
+                allocateBytes(bytes) # $v0 has the address and $a0 is free
+                writeConst(asc_str,0)
+                f.write("li $a0,0\nsb $a0,"+str(len(asc_str))+"($v0)\n")
+                reg=getReg(0,code[0])
+                varToReg[code[0]]=reg
+                regToVar[reg]=code[0]
+                f.write("addi $"+str(reg)+",$v0,0\n")
+
+            elif((code[2][0]!='t' and code[2][0]!='v')): ## first constant
+                asc_str=convertToAscii(code[2][1:-1])
+                length=len(asc_str)+string_dict[code[4]]
+                string_dict[code[0]]=length
+                bytes=length-length%4+4
+                allocateBytes(bytes) # $v0 has the address and $a0 is free
+                writeConst(asc_str,0)
+                if(regReplace==2 or regReplace==4):
+                    regReplace=5
+                regToVar[2]="busy"
+                regToVar[4]="busy"
+                if(varToReg.get(code[4])==None):
+                    reg2=getReg(0)
+                    if(code[4][0]=='t'):
+                        off=getOffset(code[4])
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
+                    else:
+                        off, control=getVarOffset(code[4])
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
+                    regToVar[reg2]=code[4]
+                    varToReg[code[4]]=reg2
+                else:
+                    reg2=varToReg[code[4]]
+                writeVar(reg2,len(asc_str),string_dict[code[4]])
+                f.write("li $a0,0\nsb $a0,"+str(length)+"($v0)\n")
+                reg=getReg(0,code[0])
+                varToReg[code[0]]=reg
+                regToVar[reg]=code[0]
+                f.write("addi $"+str(reg)+",$v0,0\n")
+                regToVar[2]="free"
+                regToVar[4]="free"
+
+            elif((code[4][0]!='t' and code[4][0]!='v')): ## second constant
+                asc_str=convertToAscii(code[4][1:-1])
+                length=len(asc_str)+string_dict[code[2]]
+                string_dict[code[0]]=length
+                bytes=length-length%4+4
+                allocateBytes(bytes) # $v0 has the address and $a0 is free
+
+                if(regReplace==2 or regReplace==4):
+                    regReplace=5
+                regToVar[2]="busy"
+                regToVar[4]="busy"
+                if(varToReg.get(code[2])==None):
+                    reg2=getReg(0)
+                    if(code[2][0]=='t'):
+                        off=getOffset(code[2])
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
+                    else:
+                        off, control=getVarOffset(code[2])
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
+                    regToVar[reg2]=code[2]
+                    varToReg[code[2]]=reg2
+                else:
+                    reg2=varToReg[code[2]]
+                writeVar(reg2,0,string_dict[code[2]])
+                writeConst(asc_str,string_dict[code[2]])
+
+                f.write("li $a0,0\nsb $a0,"+str(length)+"($v0)\n")
+                reg=getReg(0,code[0])
+                varToReg[code[0]]=reg
+                regToVar[reg]=code[0]
+                f.write("addi $"+str(reg)+",$v0,0\n")
+                regToVar[2]="free"
+                regToVar[4]="free"
+
+            else:  ## temps or vartemps
+                length=string_dict[code[2]]+string_dict[code[4]]
+                string_dict[code[0]]=length
+                bytes=length-length%4+4
+                allocateBytes(bytes) # $v0 has the address and $a0 is free
+
+                if(regReplace==2 or regReplace==4):
+                    regReplace=5
+                regToVar[2]="busy"
+                regToVar[4]="busy"
+                if(varToReg.get(code[2])==None):
+                    reg2=getReg(0)
+                    if(code[2][0]=='t'):
+                        off=getOffset(code[2])
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
+                    else:
+                        off, control=getVarOffset(code[2])
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
+                    regToVar[reg2]=code[2]
+                    varToReg[code[2]]=reg2
+                else:
+                    reg2=varToReg[code[2]]
+                writeVar(reg2,0,string_dict[code[2]])
+
+                if(regReplace==2 or regReplace==4):
+                    regReplace=5
+                regToVar[2]="busy"
+                regToVar[4]="busy"
+                if(varToReg.get(code[4])==None):
+                    reg2=getReg(0)
+                    if(code[4][0]=='t'):
+                        off=getOffset(code[4])
+                        f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($fp)\n")
+                    else:
+                        off, control=getVarOffset(code[4])
+                        if(control==0):
+                            f.write("lw " + "$"+ str(reg2) + "," + str(-off)+"($gp)\n")
+                        else:
+                            f.write("lw " + "$"+ str(reg2) + ","+str(-off)+"($fp)\n")
+                    regToVar[reg2]=code[4]
+                    varToReg[code[4]]=reg2
+                else:
+                    reg2=varToReg[code[4]]
+                writeVar(reg2,string_dict[code[2]],string_dict[code[4]])
+
+                f.write("li $a0,0\nsb $a0,"+str(length)+"($v0)\n")
+                reg=getReg(0,code[0])
+                varToReg[code[0]]=reg
+                regToVar[reg]=code[0]
+                f.write("addi $"+str(reg)+",$v0,0\n")
+                regToVar[2]="free"
+                regToVar[4]="free"
+
+
+
+
+        elif(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
             if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 val=eval(code[2]+op+code[4])
