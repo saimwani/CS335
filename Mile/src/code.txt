@@ -1,7 +1,0 @@
-main,:
-string_assign,vartemp#1,=,"This is a very very very very very very very very very long string and unlike others this string doesn't have a size limit and can be very very very long. "
-string_assign,vartemp#2,=,"This string will be used for concatenation and to test it better I need to make it very very very very very very very very very very long.\n"
-temp#3,=,vartemp#1,+string,vartemp#2
-string_assign,vartemp#4,=,temp#3
-print_string,vartemp#4
-return

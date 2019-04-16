@@ -1245,7 +1245,7 @@ def p_RuneLit(p):
     """
     p[0]=node()
     p[0].expTList.append(["rune"])
-    p[0].expList.append(p[1])
+    p[0].expList.append(ord(p[1][1]))
 
 def p_StringLit(p):
     """
@@ -1455,15 +1455,15 @@ def p_Assignment(p):
                     p[0].code.append(temp)
                 else:
                     ops=p[2].expTList[0][0][:-1]
-                    temp=[]
+                    temp1=[]
                     if(p[1].expTList[i][0]=="string"):
-                        temp.append("string_assign")
-                    temp.append(p[1].expList[i])
-                    temp.append("=")
-                    temp.append(p[1].expList[i])
-                    temp.append(ops+temp[0])
-                    tem.append(p[3].expList[i])
-                    p[0].code.append(temp)
+                        temp1.append("string_assign")
+                    temp1.append(p[1].expList[i])
+                    temp1.append("=")
+                    temp1.append(p[1].expList[i])
+                    temp1.append(ops+temp[0])
+                    temp1.append(p[3].expList[i])
+                    p[0].code.append(temp1)
     p[0].expTList=[]
 
 def p_AssignOp(p):
@@ -1657,11 +1657,12 @@ def p_ExprCaseClause(p):
         print(currentSwitch)
         raise NameError("type mismatch in case and switch",p.lineno(1))
     var1=newTemp()
+    var2=newTemp()
     label1=newLabel()
     p[0].code=p[3].code
     p[0].code.append([var1, "=", switchExp, '-'+p[3].expTList[0][0], p[3].expList[0]])
-    p[0].code.append([var1,"=",var1,"=="+p[3].expTList[0][0],'0'])
-    p[0].code.append(["ifnot", var1, "goto", label1 ])
+    p[0].code.append([var2,"=",var1,"=="+p[3].expTList[0][0],'0'])
+    p[0].code.append(["ifnot", var2, "goto", label1 ])
     p[0].code+=p[5].code
     p[0].code.append(["goto", endFor[-1]])
     p[0].code.append([label1, ":"])

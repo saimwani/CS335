@@ -575,7 +575,7 @@ for code in codeLines:
 ########################++++++++++++++++++++++++++++++++++++++++++++++++++++########################################GO
 
         elif(code[2][0]!='t' and code[2][0]!='v' and code[4][0]!='t' and code[4][0]!='v'):   #constant, constant
-            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3][-3]=='o'):  #integer op
+            if (code[3][-3]=="i" or code[3][-3]=='u' or code[3]=='bool'):  #integer op
                 op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                 val=eval(code[2]+op+code[4])
                 if (val==True):
@@ -596,7 +596,7 @@ for code in codeLines:
                 elif(val=="False"):
                     val=0
                     flag=1
-                reg=getReg(1,code[0])
+                reg=getReg(0,code[0])
                 regToVar[reg]=code[0]
                 varToReg[code[0]]=reg
                 if(flag==1):
@@ -606,7 +606,6 @@ for code in codeLines:
 
 
         elif(code[2][0]!='t' and code[2][0]!='v' and (code[4][0]=='t' or code[4][0]=='v')):   # constant, temp or constant, vartemp
-                print(code)
                 if (code[3][-3]=="i" or code[3][-3]=='u' or code[3]=='bool'):  #integer op or rune op
                     op=code[3][:-3] if code[3][-3]=="i" else code[3][:-4]
                     if(varToReg.get(code[4])==None):
@@ -703,9 +702,12 @@ for code in codeLines:
                     reg3=getReg(0)
                     f.write("addi " + "$"+ str(reg3) + ",$0," +code[4]+"\n")
                     regToVar[reg3]="const"
+                    # print(regToVar)
+                    # print(varToReg)
                     reg1=getReg(0,code[0])
                     regToVar[reg1]=code[0]
                     varToReg[code[0]]=reg1
+                    # print("--",reg1,reg2,reg3)
                     writeInstrBin(reg1, reg2, reg3, op)
                     regToVar[reg3]="free"
                 else:   #FLoat for t,c or v,c
@@ -1263,6 +1265,31 @@ for code in codeLines:
             f.write("add " + "$a0,$0,$"+ str(varToReg[code[1]]) +"\n")  #put integer to be printed into $4
         f.write("syscall\n")
 
+    if(code[0]=="print_rune"):
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,11\n" )  #print syscall is 1 , $v0 is $2
+        saveReg(4)
+        if(varToReg.get(code[1])==None):
+            if(code[1][0]=='t'):
+                off=getOffset(code[1])
+                f.write("lb " + "$a0,"+ str(-off)+"($fp)\n")  #CHECK ABOVE
+                varToReg[code[1]]=4
+                regToVar[4]=code[1]
+            elif(code[1][0]=='v'):
+                off, control=getVarOffset(code[1])
+                if(not getType(code[1])):  #if basic type // only basic types are allowed anyways
+                    if(control==0):  # if global
+                        f.write("lb " + "$a0," + str(-off)+"($gp)\n")
+                    else:
+                        f.write("lb " + "$a0," + ","+str(-off)+"($fp)\n")
+                varToReg[code[1]]=4
+                regToVar[4]=code[1]
+            else:  #is a constant
+                f.write("addi " + "$a0,$0,"+ code[1]+"\n")   #place constant integer into $4
+        else:
+            f.write("add " + "$a0,$0,$"+ str(varToReg[code[1]]) +"\n")  #put integer to be printed into $4
+        f.write("syscall\n")
+
     if(code[0]=="print_float"):
         saveReg(2)
         f.write("addi "+ "$v0,$0,2\n" )  #print syscall is 1 , $v0 is $2
@@ -1297,6 +1324,9 @@ for code in codeLines:
                 f.write("sw " + "$v0," +str(-off)+"($fp)\n")
         varToReg[code[1]]=2
         regToVar[2]=code[1]
+        if(varToReg.get(code[1])!=None):
+            regToVar[varToReg[code[1]]]="free"
+            del varToReg[code[1]]
 
 
     if(code[0]=="scan_int"):
@@ -1312,6 +1342,40 @@ for code in codeLines:
             regToVar[reg]=code[1]
             varToReg[code[1]]=reg
             f.write("sw " + "$v0," + "0($" +str(reg)+")\n")
+        if(varToReg.get(code[1])!=None):
+            regToVar[varToReg[code[1]]]="free"
+            del varToReg[code[1]]
+    
+    if(code[0]=="vscan_float"):
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,6\n" )  #scanint syscall is 5, $v0 is $2
+        f.write("syscall\n")
+        off, control=getVarOffset(code[1])
+        if(not getType(code[1])):  #if basic type // only basic types are allowed anyways
+            if(control==0):  # if global
+                f.write("swc1 " + "$f0," + str(-off)+"($gp)\n")  #scanned int is present in $v0
+            else:
+                f.write("swc1 " + "$f0," +str(-off)+"($fp)\n")
+        if(varToReg.get(code[1])!=None):
+            regToVar[varToReg[code[1]]]="free"
+            del varToReg[code[1]]
+
+    if(code[0]=="scan_float"):
+        saveReg(2)
+        f.write("addi "+ "$v0,$0,6\n" )  #scanint syscall is 5, $v0 is $2
+        f.write("syscall\n")
+        if(varToReg.get(code[1])!=None):
+            f.write("swc1 " + "$f0," + "0($" +str(varToReg[code[1]])+")\n")
+        else:
+            off=getOffset(code[1])
+            reg=getReg(0,code[1])
+            f.write("lw $"+str(reg)+","+str(off)+"($fp)\n")
+            regToVar[reg]=code[1]
+            varToReg[code[1]]=reg
+            f.write("swc1 " + "$f0," + "0($" +str(reg)+")\n")
+        if(varToReg.get(code[1])!=None):
+            regToVar[varToReg[code[1]]]="free"
+            del varToReg[code[1]]
 
     if(code[0]=="print_string"):
         if(code[1][0]!='\"'):
